@@ -1,9 +1,10 @@
 """
-Evaluate the trained MNLI source model on all benchmarks.
+Evaluate Source Model by MNLI Genre
 
 Author:
 Bindhu Pagadala
 """
+
 import os
 os.environ["WANDB_DISABLED"] = "true"
 
@@ -17,6 +18,7 @@ from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
     Trainer,
+    TrainingArguments,
     DataCollatorWithPadding,
 )
 
@@ -25,10 +27,7 @@ from transformers import (
 # ============================================================
 
 MODEL_PATH = "models/source_roberta"
-
-DATA_DIR = Path("data/processed")
-
-BATCH_SIZE = 32
+DATA_PATH = "data/processed/mnli/validation_matched.parquet"
 
 # ============================================================
 # Metrics
@@ -49,6 +48,7 @@ def compute_metrics(eval_pred):
             predictions=preds,
             references=labels,
         )["accuracy"],
+
         "macro_f1": f1.compute(
             predictions=preds,
             references=labels,
@@ -58,12 +58,23 @@ def compute_metrics(eval_pred):
 
 
 # ============================================================
-# Model
+# Load Dataset
 # ============================================================
 
-print("=" * 70)
-print("Loading trained source model")
-print("=" * 70)
+dataset = load_dataset(
+    "parquet",
+    data_files={"validation": DATA_PATH},
+)["validation"]
+
+print(f"\nTotal Samples : {len(dataset):,}")
+
+print("\nGenres")
+
+print(pd.Series(dataset["genre"]).value_counts().sort_index())
+
+# ============================================================
+# Load Model
+# ============================================================
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
@@ -73,81 +84,59 @@ model = AutoModelForSequenceClassification.from_pretrained(
 
 data_collator = DataCollatorWithPadding(tokenizer)
 
+args = TrainingArguments(
+    output_dir="tmp_eval",
+    per_device_eval_batch_size=32,
+    report_to="none",
+)
+
 trainer = Trainer(
     model=model,
+    args=args,
+    tokenizer=tokenizer,
     data_collator=data_collator,
     compute_metrics=compute_metrics,
 )
 
 # ============================================================
-# Evaluation Sets
-# ============================================================
-
-DATASETS = {
-
-    "MNLI_Matched":
-        DATA_DIR / "mnli" / "validation_matched.parquet",
-
-    "MNLI_Mismatched":
-        DATA_DIR / "mnli" / "validation_mismatched.parquet",
-
-    "WANLI":
-        DATA_DIR / "wanli" / "test.parquet",
-
-    "ANLI_R1":
-        DATA_DIR / "anli" / "dev_r1.parquet",
-
-    "ANLI_R2":
-        DATA_DIR / "anli" / "dev_r2.parquet",
-
-    "ANLI_R3":
-        DATA_DIR / "anli" / "dev_r3.parquet",
-}
-
-# ============================================================
-# Evaluate
+# Evaluate Each Genre
 # ============================================================
 
 results = []
 
-for name, file in DATASETS.items():
+genres = sorted(set(dataset["genre"]))
+
+for genre in genres:
 
     print("\n" + "=" * 70)
-    print(name)
+    print(genre.upper())
     print("=" * 70)
 
-    dataset = load_dataset(
-        "parquet",
-        data_files={"test": str(file)},
-    )["test"]
+    subset = dataset.filter(
+        lambda x: x["genre"] == genre
+    )
 
-    def tokenize(batch):
-
-        return tokenizer(
+    subset = subset.map(
+        lambda batch: tokenizer(
             batch["premise"],
             batch["hypothesis"],
             truncation=True,
             max_length=128,
-        )
-
-    dataset = dataset.map(tokenize, batched=True)
-
-    metrics = trainer.evaluate(
-        eval_dataset=dataset,
-        metric_key_prefix="eval",
+        ),
+        batched=True,
     )
 
-    print(metrics)
+    metrics = trainer.evaluate(subset)
 
     results.append({
 
-        "Dataset": name,
+        "Genre": genre,
 
-        "Samples": len(dataset),
+        "Samples": len(subset),
 
-        "Accuracy": round(metrics["eval_accuracy"], 4),
+        "Accuracy": round(metrics["eval_accuracy"],4),
 
-        "Macro F1": round(metrics["eval_macro_f1"], 4),
+        "Macro F1": round(metrics["eval_macro_f1"],4),
 
     })
 
@@ -163,8 +152,8 @@ print(results)
 Path("results").mkdir(exist_ok=True)
 
 results.to_csv(
-    "results/source_baseline.csv",
+    "results/mnli_genre_baseline.csv",
     index=False,
 )
 
-print("\nSaved results/source_baseline.csv")
+print("\nSaved results/mnli_genre_baseline.csv")
