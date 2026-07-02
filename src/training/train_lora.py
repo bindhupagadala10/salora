@@ -98,8 +98,16 @@ columns = [
     "label",
 ]
 
-train.set_format("torch", columns=columns)
-test.set_format("torch", columns=columns)
+train = train.remove_columns(
+    [c for c in train.column_names if c not in columns]
+)
+
+test = test.remove_columns(
+    [c for c in test.column_names if c not in columns]
+)
+
+train.set_format("torch")
+test.set_format("torch")
 
 # --- LoRA Configuration ---
 # Targeting only ["query", "value"] as per standard RoBERTa LoRA best practices
