@@ -25,8 +25,11 @@ from datasets import load_dataset
 
 RAW_DATA_DIR = Path("data/raw")
 
-DATASETS: Dict[str, tuple[str, str | None]] = {
+DATASETS = {
     "mnli": ("glue", "mnli"),
+    "wanli": ("alisawuffles/WANLI", None),
+    "anli": ("facebook/anli", None),
+    "mednli": ("bigbio/med_qa", "mednli"),
 }
 
 def ensure_directory(path: Path) -> None:
