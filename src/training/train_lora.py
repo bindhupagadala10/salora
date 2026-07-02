@@ -1,0 +1,208 @@
+"""
+Standard LoRA Baseline (WANLI) - Part 1
+
+Author:
+Bindhu Pagadala
+
+This script establishes the foundational baseline for RoBERTa LoRA fine-tuning.
+It focuses on environment setup, dataset preparation, and LoRA injection
+targeted at query and value modules to maintain a standard parameter budget.
+"""
+
+import os
+# Ensure W&B is disabled for baseline reproducibility
+os.environ["WANDB_DISABLED"] = "true"
+
+import random
+import numpy as np
+import torch
+from pathlib import Path
+
+from datasets import load_dataset
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+    DataCollatorWithPadding,
+    Trainer,
+    TrainingArguments,
+)
+
+from peft import (
+    LoraConfig,
+    TaskType,
+    get_peft_model,
+)
+
+from src.utils.experiment_logger import log_experiment
+
+# --- Reproducibility ---
+SEED = 42
+
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
+# --- Configuration ---
+MODEL_PATH = "models/source_roberta"
+TRAIN_FILE = "data/processed/wanli/train.parquet"
+TEST_FILE = "data/processed/wanli/test.parquet"
+OUTPUT_DIR = "models/lora_wanli"
+
+MAX_LEN = 128
+BATCH = 16
+LR = 2e-4
+EPOCHS = 3
+
+# --- Dataset Loading ---
+dataset = load_dataset(
+    "parquet",
+    data_files={
+        "train": TRAIN_FILE,
+        "test": TEST_FILE,
+    },
+)
+
+train = dataset["train"]
+test = dataset["test"]
+
+# --- Tokenizer Setup ---
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+
+def tokenize(batch):
+    return tokenizer(
+        batch["premise"],
+        batch["hypothesis"],
+        truncation=True,
+        max_length=MAX_LEN,
+    )
+
+train = train.map(tokenize, batched=True)
+test = test.map(tokenize, batched=True)
+
+collator = DataCollatorWithPadding(tokenizer)
+
+# --- Load Source Model ---
+model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_PATH,
+    num_labels=3,
+)
+
+# --- LoRA Configuration ---
+# Targeting only ["query", "value"] as per standard RoBERTa LoRA best practices
+lora_config = LoraConfig(
+    task_type=TaskType.SEQ_CLS,
+    r=8,
+    lora_alpha=16,
+    lora_dropout=0.1,
+    bias="none",
+    target_modules=[
+        "query",
+        "value",
+    ],
+)
+
+# --- Inject LoRA ---
+model = get_peft_model(
+    model,
+    lora_config,
+)
+
+# --- Training Arguments ---
+training_args = TrainingArguments(
+    output_dir="checkpoints/lora_wanli",
+    learning_rate=LR,
+    per_device_train_batch_size=BATCH,
+    per_device_eval_batch_size=BATCH,
+    num_train_epochs=EPOCHS,
+    weight_decay=0.01,
+    eval_strategy="epoch",
+    save_strategy="epoch",
+    load_best_model_at_end=True,
+    metric_for_best_model="accuracy",
+    save_total_limit=1,
+    fp16=torch.cuda.is_available(),
+    logging_steps=100,
+    report_to="none",
+    seed=SEED,
+    remove_unused_columns=False,
+)
+
+# --- Metrics ---
+import evaluate
+accuracy_metric = evaluate.load("accuracy")
+f1_metric = evaluate.load("f1")
+
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    predictions = np.argmax(logits, axis=-1)
+    acc = accuracy_metric.compute(predictions=predictions, references=labels)
+    f1 = f1_metric.compute(predictions=predictions, references=labels, average="macro")
+    return {
+        "accuracy": acc["accuracy"],
+        "macro_f1": f1["f1"]
+    }
+
+# --- Trainer ---
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train,
+    eval_dataset=test,
+    tokenizer=tokenizer,
+    data_collator=collator,
+    compute_metrics=compute_metrics,
+)
+
+# --- Training Execution ---
+if __name__ == "__main__":
+    print("======================================================================")
+    print("LoRA Training")
+    print("======================================================================")
+    print(f"Train Samples : {len(train)}")
+    print(f"Test Samples  : {len(test)}")
+    model.print_trainable_parameters()
+    
+    print("Starting training...")
+    trainer.train()
+
+    # --- Final Evaluation ---
+    print("Running final evaluation...")
+    eval_results = trainer.evaluate()
+    print(f"Evaluation Results: {eval_results}")
+
+    # --- Saving ---
+    # We save the adapter weights to the specified output directory
+    model.save_pretrained(OUTPUT_DIR)
+    tokenizer.save_pretrained(OUTPUT_DIR)
+    print(f"Model adapters saved to {OUTPUT_DIR}")
+
+    # --- Experiment Logging ---
+    # Log the final results for baseline tracking
+    log_experiment({
+
+    "Experiment": "LoRA Baseline",
+
+    "Base Model": "Source RoBERTa",
+
+    "Target": "WANLI",
+
+    "Rank": lora_config.r,
+
+    "Alpha": lora_config.lora_alpha,
+
+    "Dropout": lora_config.lora_dropout,
+
+    "Target Modules": ",".join(lora_config.target_modules),
+
+    "Learning Rate": LR,
+
+    "Epochs": EPOCHS,
+
+    "Accuracy": eval_results["eval_accuracy"],
+
+    "Macro F1": eval_results["eval_macro_f1"],
+})
