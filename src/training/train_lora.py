@@ -91,6 +91,24 @@ model = AutoModelForSequenceClassification.from_pretrained(
     num_labels=3,
 )
 
+columns = [
+    "input_ids",
+    "attention_mask",
+    "label",
+]
+
+train.set_format("torch", columns=columns)
+test.set_format("torch", columns=columns)
+
+def tokenize(batch):
+    return tokenizer(
+        batch["premise"],
+        batch["hypothesis"],
+        truncation=True,
+        max_length=MAX_LEN,
+        padding=False,
+    )
+
 # --- LoRA Configuration ---
 # Targeting only ["query", "value"] as per standard RoBERTa LoRA best practices
 lora_config = LoraConfig(
