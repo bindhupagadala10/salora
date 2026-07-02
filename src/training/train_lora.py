@@ -78,6 +78,7 @@ def tokenize(batch):
         batch["hypothesis"],
         truncation=True,
         max_length=MAX_LEN,
+        padding=False,
     )
 
 train = train.map(tokenize, batched=True)
@@ -99,15 +100,6 @@ columns = [
 
 train.set_format("torch", columns=columns)
 test.set_format("torch", columns=columns)
-
-def tokenize(batch):
-    return tokenizer(
-        batch["premise"],
-        batch["hypothesis"],
-        truncation=True,
-        max_length=MAX_LEN,
-        padding=False,
-    )
 
 # --- LoRA Configuration ---
 # Targeting only ["query", "value"] as per standard RoBERTa LoRA best practices
@@ -201,26 +193,15 @@ if __name__ == "__main__":
     # --- Experiment Logging ---
     # Log the final results for baseline tracking
     log_experiment({
-
-    "Experiment": "LoRA Baseline",
-
-    "Base Model": "Source RoBERTa",
-
-    "Target": "WANLI",
-
-    "Rank": lora_config.r,
-
-    "Alpha": lora_config.lora_alpha,
-
-    "Dropout": lora_config.lora_dropout,
-
-    "Target Modules": ",".join(lora_config.target_modules),
-
-    "Learning Rate": LR,
-
-    "Epochs": EPOCHS,
-
-    "Accuracy": eval_results["eval_accuracy"],
-
-    "Macro F1": eval_results["eval_macro_f1"],
-})
+        "Experiment": "LoRA Baseline",
+        "Base Model": "Source RoBERTa",
+        "Target": "WANLI",
+        "Rank": lora_config.r,
+        "Alpha": lora_config.lora_alpha,
+        "Dropout": lora_config.lora_dropout,
+        "Target Modules": ",".join(lora_config.target_modules),
+        "Learning Rate": LR,
+        "Epochs": EPOCHS,
+        "Accuracy": eval_results["eval_accuracy"],
+        "Macro F1": eval_results["eval_macro_f1"],
+    })
