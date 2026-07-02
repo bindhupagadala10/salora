@@ -46,3 +46,7 @@ Benchmark datasets are verified through an automated audit pipeline that reports
 ---
 
 ## 7. Conclusion
+
+## Motivation
+
+A strong MNLI model achieves over 90% accuracy on in-domain evaluation but degrades substantially under distribution shift, falling to 61.38% on WANLI and below 30% on the hardest ANLI rounds. These results motivate adaptive parameter-efficient domain adaptation.

@@ -162,7 +162,19 @@ for dataset_name, (
 
         predictions.append(predicted)
 
-        labels.append(sample[label_col])
+        if dataset_name == "WANLI":
+
+            label_map = {
+                "entailment": 0,
+                "neutral": 1,
+                "contradiction": 2,
+            }
+
+            labels.append(label_map[sample[label_col]])
+
+        else:
+
+            labels.append(sample[label_col])
 
     acc = accuracy_score(labels, predictions)
 
