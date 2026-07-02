@@ -91,19 +91,15 @@ def tokenize(batch):
 
 train = train.map(tokenize, batched=True)
 validation = validation.map(tokenize, batched=True)
-columns = [
-    "input_ids",
-    "attention_mask",
-    "label",
-]
+train = train.map(tokenize, batched=True)
+validation = validation.map(tokenize, batched=True)
 
-train.set_format("torch", columns=columns)
-validation.set_format("torch", columns=columns)
 data_collator = DataCollatorWithPadding(tokenizer)
+
 
 # ============================================================
 # Model
-# ============================================================
+# ===========================================================
 
 print("=" * 70)
 print("Loading model")
@@ -166,7 +162,7 @@ args = TrainingArguments(
 
     per_device_eval_batch_size=32,
 
-    evaluation_strategy="epoch",
+    eval_strategy="epoch",
 
     save_strategy="no",
 
