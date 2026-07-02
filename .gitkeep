@@ -1,0 +1,24 @@
+New-Item data\.gitkeep -ItemType File
+New-Item data\raw\.gitkeep -ItemType File
+New-Item data\processed\.gitkeep -ItemType File
+New-Item data\external\.gitkeep -ItemType File
+
+New-Item experiments\.gitkeep -ItemType File
+
+New-Item results\.gitkeep -ItemType File
+New-Item results\baselines\.gitkeep -ItemType File
+New-Item results\drift_analysis\.gitkeep -ItemType File
+New-Item results\plots\.gitkeep -ItemType File
+New-Item results\salora\.gitkeep -ItemType File
+
+New-Item scripts\.gitkeep -ItemType File
+
+New-Item src\.gitkeep -ItemType File
+New-Item src\analysis\.gitkeep -ItemType File
+New-Item src\baselines\.gitkeep -ItemType File
+New-Item src\data\.gitkeep -ItemType File
+New-Item src\evaluation\.gitkeep -ItemType File
+New-Item src\models\.gitkeep -ItemType File
+New-Item src\salora\.gitkeep -ItemType File
+New-Item src\training\.gitkeep -ItemType File
+New-Item src\utils\.gitkeep -ItemType File
