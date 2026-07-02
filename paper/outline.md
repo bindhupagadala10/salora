@@ -50,3 +50,25 @@ Benchmark datasets are verified through an automated audit pipeline that reports
 ## Motivation
 
 A strong MNLI model achieves over 90% accuracy on in-domain evaluation but degrades substantially under distribution shift, falling to 61.38% on WANLI and below 30% on the hardest ANLI rounds. These results motivate adaptive parameter-efficient domain adaptation.
+
+## Experimental Setup
+
+### Source Model
+
+Backbone: RoBERTa-base
+
+Training Dataset: MNLI
+
+Epochs: 3
+
+Learning Rate: 2e-5
+
+Batch Size: 16
+
+Maximum Sequence Length: 128
+
+Optimizer: AdamW
+
+Weight Decay: 0.01
+
+Warmup Ratio: 0.1

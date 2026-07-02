@@ -72,3 +72,7 @@ Validation Results
 - Original benchmark distributions preserved
 
 No preprocessing errors were detected.
+
+### Controlled Distribution Shift
+
+In addition to external datasets (WANLI and ANLI), MNLI genres are retained to evaluate controlled stylistic distribution shifts within the source benchmark. Genre-level evaluation helps distinguish robustness to stylistic variation from robustness to completely unseen domains.

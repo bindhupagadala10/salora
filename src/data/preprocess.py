@@ -48,6 +48,7 @@ def save_split(dataset, dataset_name, split_name):
                 "label": label,
                 "dataset": dataset_name,
                 "split": split_name,
+                "genre": sample.get("genre", "NA"),
             }
         )
 
