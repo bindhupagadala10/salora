@@ -16,3 +16,17 @@ results/
 
 # Hugging Face
 .cache/
+
+# Trained models
+models/
+adapters/
+
+# Zipped artifacts
+*.zip
+
+# Checkpoints
+checkpoints/
+
+# Experiment outputs
+results/*
+!results/experiments.csv
