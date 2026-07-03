@@ -48,10 +48,20 @@ torch.backends.cudnn.benchmark = False
 
 # --- Configuration ---
 MODEL_PATH = "models/source_roberta"
-TRAIN_FILE = "data/processed/wanli/train.parquet"
-TEST_FILE = "data/processed/wanli/test.parquet"
-OUTPUT_DIR = "models/lora_wanli"
+import argparse
 
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--dataset", required=True)
+
+args = parser.parse_args()
+
+DATASET = args.dataset
+
+TRAIN_FILE = f"data/processed/{DATASET}/train.parquet"
+TEST_FILE = f"data/processed/{DATASET}/test.parquet"
+
+OUTPUT_DIR = f"models/lora_{DATASET}"
 MAX_LEN = 128
 BATCH = 16
 LR = 2e-4
