@@ -17,6 +17,7 @@ import random
 import numpy as np
 import torch
 from pathlib import Path
+import argparse
 
 from datasets import load_dataset
 from transformers import (
@@ -48,20 +49,34 @@ torch.backends.cudnn.benchmark = False
 
 # --- Configuration ---
 MODEL_PATH = "models/source_roberta"
-import argparse
 
 parser = argparse.ArgumentParser()
-
 parser.add_argument("--dataset", required=True)
-
 args = parser.parse_args()
 
 DATASET = args.dataset
+if DATASET == "wanli":
+    TRAIN_FILE = "data/processed/wanli/train.parquet"
+    TEST_FILE = "data/processed/wanli/test.parquet"
 
-TRAIN_FILE = f"data/processed/{DATASET}/train.parquet"
-TEST_FILE = f"data/processed/{DATASET}/test.parquet"
+elif DATASET == "anli_r1":
+    TRAIN_FILE = "data/processed/anli/train_r1.parquet"
+    TEST_FILE = "data/processed/anli/dev_r1.parquet"
+
+elif DATASET == "anli_r2":
+    TRAIN_FILE = "data/processed/anli/train_r2.parquet"
+    TEST_FILE = "data/processed/anli/dev_r2.parquet"
+
+elif DATASET == "anli_r3":
+    TRAIN_FILE = "data/processed/anli/train_r3.parquet"
+    TEST_FILE = "data/processed/anli/dev_r3.parquet"
+
+else:
+    raise ValueError(f"Unknown dataset: {DATASET}")
 
 OUTPUT_DIR = f"models/lora_{DATASET}"
+CHECKPOINT_DIR = f"checkpoints/lora_{DATASET}"
+
 MAX_LEN = 128
 BATCH = 16
 LR = 2e-4
@@ -141,7 +156,7 @@ model = get_peft_model(
 
 # --- Training Arguments ---
 training_args = TrainingArguments(
-    output_dir="checkpoints/lora_wanli",
+    output_dir=CHECKPOINT_DIR,
     learning_rate=LR,
     per_device_train_batch_size=BATCH,
     per_device_eval_batch_size=BATCH,
@@ -190,6 +205,7 @@ if __name__ == "__main__":
     print("======================================================================")
     print("LoRA Training")
     print("======================================================================")
+    print(f"Dataset : {DATASET}")
     print(f"Train Samples : {len(train)}")
     print(f"Test Samples  : {len(test)}")
     model.print_trainable_parameters()
@@ -213,7 +229,7 @@ if __name__ == "__main__":
     log_experiment({
         "Experiment": "LoRA Baseline",
         "Base Model": "Source RoBERTa",
-        "Target": "WANLI",
+        "Target": DATASET,
         "Rank": lora_config.r,
         "Alpha": lora_config.lora_alpha,
         "Dropout": lora_config.lora_dropout,
