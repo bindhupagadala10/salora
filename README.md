@@ -17,3 +17,4 @@ Representations are extracted from the frozen MNLI source model using `output_hi
 ### EXP-003A – Drift Metrics
 
 Implemented Linear CKA and Gaussian RBF MMD with the median heuristic. These metrics quantify structural similarity and distributional divergence between layer representations extracted from the frozen source model.
+Layer-wise representation drift is computed between the frozen MNLI source model and target domains using Linear CKA and Gaussian RBF MMD. CKA is additionally converted to `CKA_Drift = 1 - CKA` so that all drift measures share a common interpretation where larger values indicate greater domain shift.
