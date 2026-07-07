@@ -96,7 +96,7 @@ dataset = dataset.map(
 columns = [
     "input_ids",
     "attention_mask",
-    "label",
+    "labels",
 ]
 
 dataset = dataset.remove_columns(
@@ -139,13 +139,13 @@ with torch.no_grad():
     for batch in loader:
 
         labels.append(
-            batch["label"]
+            batch["labels"]
         )
 
         batch = {
             k: v.to(DEVICE)
             for k, v in batch.items()
-            if k != "label"
+            if k != "labels"
         }
 
         outputs = model(
