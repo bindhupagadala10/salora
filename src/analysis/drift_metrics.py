@@ -102,7 +102,7 @@ def mmd_rbf(
 def sinkhorn_distance(
     X,
     Y,
-    reg=0.05,
+    reg=1,
 ):
     """
     Entropic Sinkhorn Wasserstein Distance.
@@ -117,6 +117,16 @@ def sinkhorn_distance(
     float
     """
 
+    X = torch.nn.functional.normalize(
+        X,
+        dim=1,
+    )
+
+    Y = torch.nn.functional.normalize(
+        Y,
+        dim=1,
+    )
+
     X = X.cpu().numpy()
     Y = Y.cpu().numpy()
 
@@ -129,7 +139,7 @@ def sinkhorn_distance(
         metric="euclidean",
     )
 
-    value = ot.sinkhorn2(
+    value = ot.bregman.sinkhorn_stabilized(
         a,
         b,
         M,
