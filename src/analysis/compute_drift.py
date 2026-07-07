@@ -19,8 +19,8 @@ import pandas as pd
 import torch
 
 from src.analysis.drift_metrics import (
-    linear_cka,
     mmd_rbf,
+    sinkhorn_distance,
 )
 
 parser = argparse.ArgumentParser()
@@ -85,25 +85,31 @@ for layer in range(source_rep.shape[0]):
     X = source_rep[layer]
     Y = target_rep[layer]
 
-    cka = linear_cka(X, Y)
     mmd = mmd_rbf(X, Y)
+
+    wasserstein = sinkhorn_distance(
+        X,
+        Y,
+    )
 
     results.append(
         {
             "Layer": layer,
-            "CKA": cka,
-            "CKA_Drift": 1.0 - cka,
+            "Layer_Name": (
+                "Embedding"
+                if layer == 0
+                else f"Encoder_{layer}"
+            ),
             "MMD": mmd,
+            "Sinkhorn": wasserstein,
         }
     )
 
     print(
         f"Layer {layer:2d} | "
-        f"CKA={cka:.4f} | "
-        f"Drift={1-cka:.4f} | "
-        f"MMD={mmd:.4f}"
+        f"MMD={mmd:.5f} | "
+        f"Sinkhorn={wasserstein:.5f}"
     )
-
 df = pd.DataFrame(results)
 
 save_path = OUTPUT_DIR / f"{SOURCE}_vs_{TARGET}.csv"

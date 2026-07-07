@@ -11,7 +11,7 @@ Bindhu Pagadala
 """
 
 import torch
-
+import ot
 
 def center_gram(K: torch.Tensor) -> torch.Tensor:
     """
@@ -98,3 +98,42 @@ def mmd_rbf(
     )
 
     return mmd.item()
+
+def sinkhorn_distance(
+    X,
+    Y,
+    reg=0.05,
+):
+    """
+    Entropic Sinkhorn Wasserstein Distance.
+
+    Parameters
+    ----------
+    X : (N,D)
+    Y : (N,D)
+
+    Returns
+    -------
+    float
+    """
+
+    X = X.cpu().numpy()
+    Y = Y.cpu().numpy()
+
+    a = ot.unif(len(X))
+    b = ot.unif(len(Y))
+
+    M = ot.dist(
+        X,
+        Y,
+        metric="euclidean",
+    )
+
+    value = ot.sinkhorn2(
+        a,
+        b,
+        M,
+        reg=reg,
+    )
+
+    return float(value)
