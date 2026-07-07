@@ -30,3 +30,7 @@ checkpoints/
 # Experiment outputs
 results/*
 !results/experiments.csv
+
+
+tree.txt
+test.py
