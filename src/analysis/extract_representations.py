@@ -107,6 +107,7 @@ dataset = dataset.remove_columns(
     ]
 )
 
+dataset = dataset.rename_column("label", "labels")
 dataset.set_format("torch")
 
 collator = DataCollatorWithPadding(
@@ -147,7 +148,11 @@ with torch.no_grad():
             if k != "label"
         }
 
-        outputs = model(**batch)
+        outputs = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+            output_hidden_states=True,
+        )
 
         hidden_states = outputs.hidden_states
 
