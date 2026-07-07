@@ -9,11 +9,6 @@ __pycache__/
 .vscode/
 .idea/
 
-
-
-# Results
-results/
-
 # Hugging Face
 .cache/
 

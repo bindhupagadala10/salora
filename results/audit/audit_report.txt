@@ -1,0 +1,2 @@
+Dataset  Samples  Classes  Missing  Duplicates  Premise Avg Length  Hypothesis Avg Length
+   mnli   392702        3        0           0           19.811032               9.972063

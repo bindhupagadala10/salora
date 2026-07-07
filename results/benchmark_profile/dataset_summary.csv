@@ -1,0 +1,17 @@
+Dataset,Split,Samples,Columns,Premise Column,Hypothesis Column,Label Column,Classes,Missing Values,Duplicate Rows,Avg Premise Length,Avg Hypothesis Length
+anli,dev_r1,1000,5,premise,hypothesis,label,3,0,0,53.95,10.97
+anli,dev_r2,1000,5,premise,hypothesis,label,3,0,0,54.18,10.25
+anli,dev_r3,1200,5,premise,hypothesis,label,3,0,0,55.13,9.77
+anli,test_r1,1000,5,premise,hypothesis,label,3,0,0,53.86,10.97
+anli,test_r2,1000,5,premise,hypothesis,label,3,0,0,54.32,10.26
+anli,test_r3,1200,5,premise,hypothesis,label,3,0,0,54.96,9.57
+anli,train_r1,16946,5,premise,hypothesis,label,3,0,0,54.0,10.91
+anli,train_r2,45460,5,premise,hypothesis,label,3,0,0,54.0,9.95
+anli,train_r3,100459,5,premise,hypothesis,label,3,0,0,54.21,9.21
+mnli,test_matched,9796,4,premise,hypothesis,label,1,0,0,19.65,9.89
+mnli,test_mismatched,9847,4,premise,hypothesis,label,1,0,0,19.56,10.81
+mnli,train,392702,4,premise,hypothesis,label,3,0,0,19.81,9.97
+mnli,validation_matched,9815,4,premise,hypothesis,label,3,0,0,19.27,9.92
+mnli,validation_mismatched,9832,4,premise,hypothesis,label,3,0,0,19.64,10.83
+wanli,test,5000,6,premise,hypothesis,gold,3,0,0,17.48,9.83
+wanli,train,102885,6,premise,hypothesis,gold,3,0,0,17.49,9.93

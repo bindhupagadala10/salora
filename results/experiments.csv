@@ -1,0 +1,2 @@
+Experiment,Base Model,Target,Rank,Alpha,Dropout,Target Modules,Learning Rate,Epochs,Accuracy,Macro F1
+LoRA Baseline,Source RoBERTa,WANLI,8,16,0.1,"query,value",0.0002,3,0.7298,0.7086761511159203
