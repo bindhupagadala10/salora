@@ -76,6 +76,9 @@ dataset = load_dataset(
     split="train",
 )
 
+# Standardize column naming to 'labels'
+dataset = dataset.rename_column("label", "labels")
+
 tokenizer = AutoTokenizer.from_pretrained(
     MODEL_PATH
 )
@@ -107,7 +110,6 @@ dataset = dataset.remove_columns(
     ]
 )
 
-dataset = dataset.rename_column("label", "labels")
 dataset.set_format("torch")
 
 collator = DataCollatorWithPadding(
@@ -130,7 +132,7 @@ model.to(DEVICE)
 model.eval()
 
 layer_outputs = [[] for _ in range(13)]
-labels = []
+labels_list = []
 
 print("\nExtracting representations...\n")
 
@@ -138,19 +140,16 @@ with torch.no_grad():
 
     for batch in loader:
 
-        labels.append(
+        labels_list.append(
             batch["labels"]
         )
 
-        batch = {
-            k: v.to(DEVICE)
-            for k, v in batch.items()
-            if k != "labels"
-        }
+        input_ids = batch["input_ids"].to(DEVICE)
+        attention_mask = batch["attention_mask"].to(DEVICE)
 
         outputs = model(
-            input_ids=batch["input_ids"],
-            attention_mask=batch["attention_mask"],
+            input_ids=input_ids,
+            attention_mask=attention_mask,
             output_hidden_states=True,
         )
 
@@ -171,7 +170,7 @@ representations = torch.stack(
     ]
 )
 
-labels = torch.cat(labels)
+labels = torch.cat(labels_list)
 
 save_path = OUTPUT_DIR / f"{DATASET}.pt"
 
