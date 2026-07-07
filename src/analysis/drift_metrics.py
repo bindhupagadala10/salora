@@ -5,9 +5,7 @@ Contains the mathematical implementations of
 
 - Linear CKA
 - Gaussian RBF MMD
-
-Author:
-Bindhu Pagadala
+- Entropic Sinkhorn Wasserstein Distance
 """
 
 import torch
@@ -29,7 +27,6 @@ def linear_cka(X: torch.Tensor, Y: torch.Tensor) -> float:
     X : (N,D)
     Y : (N,D)
     """
-
     X = X - X.mean(dim=0, keepdim=True)
     Y = Y - Y.mean(dim=0, keepdim=True)
 
@@ -54,7 +51,6 @@ def rbf_kernel(
     """
     Gaussian RBF kernel.
     """
-
     dist = torch.cdist(X, X) ** 2
     return torch.exp(-dist / (2 * sigma ** 2))
 
@@ -64,12 +60,14 @@ def median_heuristic(
     Y: torch.Tensor,
 ):
     """
-    Median heuristic bandwidth.
+    Median heuristic bandwidth, excluding diagonal zeros.
     """
-
     Z = torch.cat([X, Y], dim=0)
 
     dist = torch.cdist(Z, Z)
+    
+    # Exclude diagonal zeros for a robust bandwidth estimate
+    dist = dist[dist > 0]
     sigma = torch.median(dist)
 
     return sigma.item()
@@ -82,7 +80,6 @@ def mmd_rbf(
     """
     Gaussian RBF Maximum Mean Discrepancy.
     """
-
     sigma = median_heuristic(X, Y)
 
     Kxx = rbf_kernel(X, sigma)
@@ -99,51 +96,41 @@ def mmd_rbf(
 
     return mmd.item()
 
+
 def sinkhorn_distance(
-    X,
-    Y,
-    reg=1,
-):
+    X: torch.Tensor,
+    Y: torch.Tensor,
+    reg: float = 1.0,
+) -> float:
     """
     Entropic Sinkhorn Wasserstein Distance.
-
-    Parameters
-    ----------
-    X : (N,D)
-    Y : (N,D)
-
-    Returns
-    -------
-    float
+    
+    Computes cost explicitly using the transport plan gamma.
     """
+    X = torch.nn.functional.normalize(X, dim=1)
+    Y = torch.nn.functional.normalize(Y, dim=1)
 
-    X = torch.nn.functional.normalize(
-        X,
-        dim=1,
-    )
+    X_np = X.cpu().numpy()
+    Y_np = Y.cpu().numpy()
 
-    Y = torch.nn.functional.normalize(
-        Y,
-        dim=1,
-    )
-
-    X = X.cpu().numpy()
-    Y = Y.cpu().numpy()
-
-    a = ot.unif(len(X))
-    b = ot.unif(len(Y))
+    a = ot.unif(len(X_np))
+    b = ot.unif(len(Y_np))
 
     M = ot.dist(
-        X,
-        Y,
+        X_np,
+        Y_np,
         metric="euclidean",
     )
 
-    value = ot.bregman.sinkhorn_stabilized(
+    # Calculate optimal transport plan gamma
+    gamma = ot.bregman.sinkhorn_stabilized(
         a,
         b,
         M,
         reg=reg,
     )
 
-    return float(value)
+    # Cost = sum of (transport_plan * cost_matrix)
+    cost = (gamma * M).sum()
+
+    return float(cost)
