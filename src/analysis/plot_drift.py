@@ -18,11 +18,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+import argparse 
+
 # --------------------------------------------------
 
-RESULTS = Path("results/drift_analysis/n500")
+parser = argparse.ArgumentParser()
 
-OUT = Path("results/plots/n500")
+parser.add_argument(
+    "--sample_size",
+    type=int,
+    required=True,
+)
+
+args = parser.parse_args()
+
+RESULTS = Path(f"results/drift_analysis/n{args.sample_size}")
+
+OUT = Path(f"results/plots/n{args.sample_size}")
 OUT.mkdir(parents=True, exist_ok=True)
 
 FILES = {
