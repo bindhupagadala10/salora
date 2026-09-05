@@ -1,2 +1,3 @@
-Experiment,Base Model,Target,Rank,Alpha,Dropout,Target Modules,Learning Rate,Epochs,Accuracy,Macro F1
-LoRA Baseline,Source RoBERTa,WANLI,8,16,0.1,"query,value",0.0002,3,0.7298,0.7086761511159203
+Experiment,Base Model,Target,Rank,Alpha,Dropout,Target Modules,Learning Rate,Epochs,Accuracy,Macro F1,Method,Metric,Seed,Allocation_Seed,Layer_Ranks,LoRA_Only_Params,Head_Params,Total_Trainable_Params
+LoRA Baseline,Source RoBERTa,WANLI,8.0,16,0.1,"query,value",0.0002,3,0.7298,0.7086761511159203,,,,,,,,
+SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"query,value",0.0002,3,0.443,0.4391196592434983,salora_mmd,mmd,42.0,,"8,9,8,8,8,9,9,8,8,8,7,6",294912.0,592899.0,887811.0
