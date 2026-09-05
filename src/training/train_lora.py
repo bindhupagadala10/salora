@@ -167,6 +167,13 @@ training_args = TrainingArguments(
     load_best_model_at_end=True,
     metric_for_best_model="accuracy",
     save_total_limit=1,
+    # Gated on cuda specifically, not mps: verified empirically (2026-09-05) that both
+    # fp16=True and bf16=True raise ValueError via accelerate's Accelerator on MPS
+    # ("fp16 mixed precision requires a GPU" / "doesn't support bf16/gpu") with
+    # accelerate==1.9.0 + transformers==4.55.0. Do not widen this to
+    # `torch.cuda.is_available() or torch.backends.mps.is_available()` -- that crashes
+    # on this hardware. MPS runs in fp32; Trainer already places the model on "mps"
+    # automatically without any device_map/device argument here.
     fp16=torch.cuda.is_available(),
     logging_steps=100,
     report_to="none",
