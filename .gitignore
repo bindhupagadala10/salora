@@ -27,3 +27,6 @@ test.py
 
 # macOS
 .DS_Store
+
+# Run logs (transient; results land in results/experiments.csv and results/salora/)
+logs/

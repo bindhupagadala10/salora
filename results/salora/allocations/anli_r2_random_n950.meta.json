@@ -1,0 +1,9 @@
+{
+  "metric": "random",
+  "total_budget": 96,
+  "r_min": 1,
+  "r_max": 16,
+  "allocation_seed": 103,
+  "sample_size": null,
+  "trainable_params": 294912
+}

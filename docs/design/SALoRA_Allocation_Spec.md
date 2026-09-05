@@ -171,3 +171,29 @@ point, per Section 8's existing "only reported if this equivalence actually hold
 
 No change to Sections 4–10 (the allocation formula, constraints, rounding, or alpha policy) — this
 deviation is scoped entirely to the parameter-count bookkeeping in Sections 3 and 9.
+
+**2026-09-05 — Section 8, method F ("Inverse-drift") did not specify which metric's drift profile
+feeds `D_l' = 1/(D_l + eps)`, since MMD and Sinkhorn are otherwise never mixed (Section 7).**
+
+Resolved (user decision, before Step 6 training began): Inverse-drift is run as **two separate
+paired controls**, Inverse-MMD and Inverse-Sinkhorn, each inverting its own metric's profile via
+the unchanged Sections 4–6 apportionment path. Inverse-MMD is the negative control for
+SALoRA-MMD; Inverse-Sinkhorn is the negative control for SALoRA-Sinkhorn. This keeps the
+"MMD and Sinkhorn are never combined" rule (Section 7) intact for the control conditions too, at
+the cost of one additional trained condition per target domain (5 non-baseline methods instead of
+4: SALoRA-MMD, SALoRA-Sinkhorn, Random, Inverse-MMD, Inverse-Sinkhorn).
+
+Random (method E) is unaffected by this decision — it does not depend on either drift metric, so
+there is exactly one Random condition per target domain, not a pair.
+
+**2026-09-06 — Which sample size's drift profile is used to compute the "final" allocation for
+real training.**
+
+Section 12 anticipates a specific `N` per serialized allocation but the spec never states which of
+the four analysis sample sizes (250/500/750/950) should be treated as authoritative for training,
+now that Step 2 confirmed the profiles are stable across all four. Resolved: **N=950** (the
+largest available sample) is used to compute every allocation used in real training, on the
+grounds that it gives the lowest-variance drift estimate and the stability check means this choice
+should not materially differ from N=250/500/750 in any case. The other three sample sizes remain
+available under `results/drift_analysis/n{250,500,750}/` for any sensitivity check a reviewer asks
+for, but are not used to derive training allocations themselves.

@@ -1,0 +1,9 @@
+{
+  "metric": "inverse_sinkhorn",
+  "total_budget": 96,
+  "r_min": 1,
+  "r_max": 16,
+  "allocation_seed": null,
+  "sample_size": 950,
+  "trainable_params": 294912
+}
