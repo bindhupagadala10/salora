@@ -131,4 +131,43 @@ Goal: distinguish "drift correlates with adaptation demand" from "the drift metr
 
 ## 14. Deviation Log
 
-*(empty — record any change to Sections 3–10 here, dated, with the reason, once implementation or Step 5's real numbers force a revision.)*
+**2026-09-05 — Section 3's "total trainable parameters" figure was incomplete; R_total itself is unaffected.**
+
+Step 5 (`src/salora/verify_peft_mechanism.py`), run against the real `models/source_roberta`
+checkpoint with `peft==0.17.0`, confirmed:
+
+- The LoRA-only math in Section 3 is exactly correct: the allocator's `compute_trainable_params()`
+  predicted 294,912 for a test allocation (`R_total=96`), and the real `get_peft_model` output
+  matched exactly once the classifier head's parameters are excluded. Check 1 (per-layer ranks
+  applied via `rank_pattern`) also passed exactly: every LoRA module got precisely the rank the
+  allocator assigned.
+- However, `get_peft_model(..., task_type=TaskType.SEQ_CLS)` **automatically wraps the classifier
+  head in `modules_to_save`** and makes it trainable (592,899 params for this model/head shape),
+  even though no method in Section 8 passes `modules_to_save` explicitly. This is `peft`'s default
+  behavior for sequence-classification task types, not something introduced by the allocator or
+  by `rank_pattern`.
+- This head-trainable count is a **fixed constant, independent of the rank pattern** — verified by
+  comparing the actual uniform baseline's config (`r=8` uniform) against the Step-5 smoketest's
+  non-uniform allocation: both show exactly 592,899 head params on top of their (different)
+  LoRA-only counts. So it adds identically to every method in Section 8 that doesn't override
+  `modules_to_save`, and does **not** break the "identical total trainable-parameter count across
+  methods" requirement in Section 9 — it just means that requirement is satisfied at
+  `294,912 + 592,899 = 887,811` total trainable parameters, not at 294,912.
+
+**Correction:** Section 3's "uniform baseline total trainable-parameter count" of 294,912 should be
+read as "LoRA-only trainable parameters"; the actual total trainable parameter count for every
+method in Section 8 (A/B excluded, since A has no LoRA and the classifier head's own trainability
+under zero-shot eval is not applicable) is 887,811, confirmed empirically for the uniform (r=8)
+config. Section 9's automated parameter-equality check must log and compare this **total** figure
+(via `count_trainable(model)`, i.e. `sum(p.numel() for p in model.parameters() if p.requires_grad)`),
+not just the allocator's LoRA-only `compute_trainable_params()` output, when validating real
+training runs — the allocator function itself does not need to change, since its job is only to
+size the LoRA rank pattern, not to account for `peft`'s head-wrapping behavior.
+
+**Implication for AdaLoRA (method G):** its matched target-budget parameter must be set so that its
+*total* trainable parameter count (LoRA + whatever head-handling `AdaLoraConfig` produces under the
+same `task_type=TaskType.SEQ_CLS`) equals 887,811, not 294,912 — to be verified empirically at that
+point, per Section 8's existing "only reported if this equivalence actually holds" caveat.
+
+No change to Sections 4–10 (the allocation formula, constraints, rounding, or alpha policy) — this
+deviation is scoped entirely to the parameter-count bookkeeping in Sections 3 and 9.
