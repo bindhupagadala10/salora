@@ -24,3 +24,6 @@ checkpoints/
 
 tree.txt
 test.py
+
+# macOS
+.DS_Store
