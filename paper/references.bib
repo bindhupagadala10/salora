@@ -108,6 +108,39 @@
   url     = {https://arxiv.org/abs/1910.07676}
 }
 
+@inproceedings{williams2018mnli,
+  title     = {A Broad-Coverage Challenge Corpus for Sentence Understanding through Inference},
+  author    = {Williams, Adina and Nangia, Nikita and Bowman, Samuel},
+  booktitle = {Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers)},
+  year      = {2018},
+  pages     = {1112--1122},
+  publisher = {Association for Computational Linguistics},
+  url       = {https://aclanthology.org/N18-1101/}
+}
+
+@article{nie2020anli,
+  title   = {Adversarial NLI: A New Benchmark for Natural Language Understanding},
+  author  = {Nie, Yixin and Williams, Adina and Dinan, Emily and Bansal, Mohit and Weston, Jason and Kiela, Douwe},
+  year    = {2020},
+  eprint  = {1910.14599},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  note    = {ACL 2020. Collected via an iterative human-and-model-in-the-loop adversarial procedure: annotators were shown a "target model" and tasked with writing examples that fooled it, with the target model and its training data escalating across three rounds (R1: BERT-Large; R2: RoBERTa-Large ensemble; R3: RoBERTa-Large ensemble with multi-domain contexts). Cited in docs/design/Research_Design_Document.md to support the drift-vs-difficulty distinction.},
+  url     = {https://arxiv.org/abs/1910.14599}
+}
+
+@inproceedings{liu2022wanli,
+  title     = {WANLI: Worker and AI Collaboration for Natural Language Inference Dataset Creation},
+  author    = {Liu, Alisa and Swayamdipta, Swabha and Smith, Noah A. and Choi, Yejin},
+  booktitle = {Findings of the Association for Computational Linguistics: EMNLP 2022},
+  year      = {2022},
+  eprint    = {2201.05955},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  note      = {Uses dataset cartography over MultiNLI to find challenging reasoning patterns, has GPT-3 generate new examples matching those patterns, then has crowdworkers filter/revise -- a pattern-based construction, distinct from ANLI's model-adversarial one. Cited in docs/design/Research_Design_Document.md to support the drift-vs-difficulty distinction.},
+  url       = {https://arxiv.org/abs/2201.05955}
+}
+
 @article{wang2020rethinkmmd,
   title   = {Rethink Maximum Mean Discrepancy for Domain Adaptation},
   author  = {Wang, Wei and Li, Haojie and Ding, Zhengming and Wang, Zhihui},
