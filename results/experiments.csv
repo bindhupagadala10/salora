@@ -1,3 +1,13 @@
 Experiment,Base Model,Target,Rank,Alpha,Dropout,Target Modules,Learning Rate,Epochs,Accuracy,Macro F1,Method,Metric,Seed,Allocation_Seed,Layer_Ranks,LoRA_Only_Params,Head_Params,Total_Trainable_Params
 LoRA Baseline,Source RoBERTa,WANLI,8.0,16,0.1,"query,value",0.0002,3,0.7298,0.7086761511159203,,,,,,,,
 SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"query,value",0.0002,3,0.443,0.4391196592434983,salora_mmd,mmd,42.0,,"8,9,8,8,8,9,9,8,8,8,7,6",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"value,query",0.0002,3,0.438,0.4338572687565976,salora_mmd,mmd,42.0,,"8,9,8,8,8,9,9,8,8,8,7,6",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"value,query",0.0002,3,0.444,0.4402823072505517,salora_sinkhorn,sinkhorn,42.0,,"8,5,5,5,5,6,6,8,10,10,12,16",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"value,query",0.0002,3,0.439,0.436299587936962,random,random,42.0,102.0,"2,11,3,12,10,7,11,10,1,9,11,9",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"value,query",0.0002,3,0.443,0.4382887074203199,inverse_mmd,inverse_mmd,42.0,,"8,7,8,8,8,7,7,8,8,8,9,10",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"value,query",0.0002,3,0.444,0.4408848888182354,inverse_sinkhorn,inverse_sinkhorn,42.0,,"7,11,11,10,10,10,9,7,6,6,5,4",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"value,query",0.0002,3,0.408,0.3975249798694037,salora_mmd,mmd,42.0,,"7,9,8,8,8,9,9,8,8,8,7,7",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"query,value",0.0002,3,0.407,0.3943519229646397,salora_sinkhorn,sinkhorn,42.0,,"7,5,5,5,6,6,6,8,10,10,12,16",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"query,value",0.0002,3,0.397,0.3874734404070001,random,random,42.0,103.0,"15,7,11,12,3,1,9,2,6,14,14,2",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"query,value",0.0002,3,0.409,0.3994564578148243,inverse_mmd,inverse_mmd,42.0,,"8,7,8,8,8,7,7,8,8,8,9,10",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"query,value",0.0002,3,0.409,0.3974055473940821,inverse_sinkhorn,inverse_sinkhorn,42.0,,"8,11,11,10,10,10,10,7,5,6,4,4",294912.0,592899.0,887811.0
