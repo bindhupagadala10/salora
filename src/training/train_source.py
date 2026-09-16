@@ -194,7 +194,7 @@ trainer = Trainer(
 
     eval_dataset=validation,
 
-    tokenizer=tokenizer,
+    processing_class=tokenizer,
 
     data_collator=data_collator,
 

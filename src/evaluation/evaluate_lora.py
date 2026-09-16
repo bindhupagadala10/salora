@@ -112,7 +112,7 @@ for name, info in DATASETS.items():
             report_to="none",
         ),
         eval_dataset=ds,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         data_collator=DataCollatorWithPadding(tokenizer),
         compute_metrics=compute_metrics,
     )
