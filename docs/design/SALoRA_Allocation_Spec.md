@@ -172,6 +172,18 @@ point, per Section 8's existing "only reported if this equivalence actually hold
 No change to Sections 4–10 (the allocation formula, constraints, rounding, or alpha policy) — this
 deviation is scoped entirely to the parameter-count bookkeeping in Sections 3 and 9.
 
+**2026-09-16 addendum — confirmed on a second, independent peft version.** Re-ran
+`verify_peft_mechanism.py` on Colab (`peft==0.20.0`, resolved unpinned on Python 3.13 --
+see `notebooks/colab_train_salora.ipynb`), vs. the original run on the local Mac
+(`peft==0.17.0`). All four checks produced identical results: Check 1 PASS, Check 2
+294,912 predicted vs. 887,811 actual (same exact numbers), Check 3 PASS, Check 4 same
+592,899-param auto-trainable head. The parameter-budget-equality invariant (887,811
+total for every non-zero-shot method) is confirmed robust across both peft versions,
+not an artifact of one specific version. (Also required uninstalling `torchao` on
+Colab -- unrelated to this deviation, `peft==0.20.0`'s LoRA dispatcher raises on a
+present-but-too-old torchao rather than treating it as absent; this project doesn't
+use torchao/quantization at all.)
+
 **2026-09-05 — Section 8, method F ("Inverse-drift") did not specify which metric's drift profile
 feeds `D_l' = 1/(D_l + eps)`, since MMD and Sinkhorn are otherwise never mixed (Section 7).**
 
