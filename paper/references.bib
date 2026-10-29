@@ -15,8 +15,7 @@
   eprint    = {1905.00414},
   archivePrefix = {arXiv},
   primaryClass  = {cs.LG},
-  url       = {https://arxiv.org/abs/1905.00414},
-  note      = {Introduces CKA for comparing representation spaces of networks/layers on the same input data. This project repurposes it to compare the same layer's representations across different data (source vs. target domain), which is a different use case than CKA's invariances (rotation, isotropic scaling) were designed for -- cited in Research_Design_Document.md and the paper to justify why CKA was not used as a primary allocation signal.}
+  url       = {https://arxiv.org/abs/1905.00414}
 }
 
 @article{bendavid2010theory,
@@ -26,8 +25,7 @@
   year    = {2010},
   volume  = {79},
   number  = {1-2},
-  pages   = {151--175},
-  note    = {Establishes the H-divergence / H-delta-H-divergence and its generalization-error bound for domain adaptation. Cited as a theoretically-grounded alternative/complementary drift signal (via a domain classifier's discriminability) not yet implemented in this project -- noted as future work.}
+  pages   = {151--175}
 }
 
 @article{hu2021lora,
@@ -59,8 +57,7 @@
   eprint    = {2501.01765},
   archivePrefix = {arXiv},
   primaryClass  = {cs.LG},
-  url       = {https://arxiv.org/abs/2501.01765},
-  note      = {Name collision with this project's SALoRA; unrelated topic (safety alignment). See docs/literature/Related_Work.md Section 4 -- disambiguation/renaming decision still open as of 2026-09-06.}
+  url       = {https://arxiv.org/abs/2501.01765}
 }
 
 @article{gu2025lalora,
@@ -68,7 +65,6 @@
   author  = {Gu, Jiancheng and Yuan, Jiabin and Cai, Jiyuan and Zhou, Xianfa and Fan, Lili},
   journal = {Neurocomputing},
   year    = {2025},
-  note    = {Exact volume/page numbers not confirmed as of 2026-09-06 (publisher page returned 403 to automated fetch); verify against the publisher record before citing in a submitted draft.},
   url     = {https://www.sciencedirect.com/science/article/abs/pii/S089360802500975X}
 }
 
@@ -150,7 +146,6 @@
   eprint  = {1910.14599},
   archivePrefix = {arXiv},
   primaryClass  = {cs.CL},
-  note    = {ACL 2020. Collected via an iterative human-and-model-in-the-loop adversarial procedure: annotators were shown a "target model" and tasked with writing examples that fooled it, with the target model and its training data escalating across three rounds (R1: BERT-Large; R2: RoBERTa-Large ensemble; R3: RoBERTa-Large ensemble with multi-domain contexts). Cited in docs/design/Research_Design_Document.md to support the drift-vs-difficulty distinction.},
   url     = {https://arxiv.org/abs/1910.14599}
 }
 
@@ -162,7 +157,6 @@
   eprint    = {2201.05955},
   archivePrefix = {arXiv},
   primaryClass  = {cs.CL},
-  note      = {Uses dataset cartography over MultiNLI to find challenging reasoning patterns, has GPT-3 generate new examples matching those patterns, then has crowdworkers filter/revise -- a pattern-based construction, distinct from ANLI's model-adversarial one. Cited in docs/design/Research_Design_Document.md to support the drift-vs-difficulty distinction.},
   url       = {https://arxiv.org/abs/2201.05955}
 }
 
