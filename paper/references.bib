@@ -5,6 +5,31 @@
 % citations support. Do not add an entry here without verifying it the
 % same way; do not cite a source in paper/outline.md that isn't in this file.
 
+@inproceedings{kornblith2019cka,
+  title     = {Similarity of Neural Network Representations Revisited},
+  author    = {Kornblith, Simon and Norouzi, Mohammad and Lee, Honglak and Hinton, Geoffrey},
+  booktitle = {Proceedings of the 36th International Conference on Machine Learning (ICML)},
+  year      = {2019},
+  volume    = {97},
+  pages     = {3519--3529},
+  eprint    = {1905.00414},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url       = {https://arxiv.org/abs/1905.00414},
+  note      = {Introduces CKA for comparing representation spaces of networks/layers on the same input data. This project repurposes it to compare the same layer's representations across different data (source vs. target domain), which is a different use case than CKA's invariances (rotation, isotropic scaling) were designed for -- cited in Research_Design_Document.md and the paper to justify why CKA was not used as a primary allocation signal.}
+}
+
+@article{bendavid2010theory,
+  title   = {A Theory of Learning from Different Domains},
+  author  = {Ben-David, Shai and Blitzer, John and Crammer, Koby and Kulesza, Alex and Pereira, Fernando and Vaughan, Jennifer Wortman},
+  journal = {Machine Learning},
+  year    = {2010},
+  volume  = {79},
+  number  = {1-2},
+  pages   = {151--175},
+  note    = {Establishes the H-divergence / H-delta-H-divergence and its generalization-error bound for domain adaptation. Cited as a theoretically-grounded alternative/complementary drift signal (via a domain classifier's discriminability) not yet implemented in this project -- noted as future work.}
+}
+
 @article{hu2021lora,
   title   = {LoRA: Low-Rank Adaptation of Large Language Models},
   author  = {Hu, Edward J. and Shen, Yelong and Wallis, Phillip and Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and Chen, Weizhu},
