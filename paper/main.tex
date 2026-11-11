@@ -9,7 +9,7 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{multirow}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -20,9 +20,16 @@
 
 \author{
 \IEEEauthorblockN{Bindhu Pagadala}
-\IEEEauthorblockA{\textit{Independent Research} \\
-[Your City], India \\
-bindhu.sri@workato.com}
+\IEEEauthorblockA{\textit{School of Computer Engineering} \\
+\textit{Manipal Institute of Technology} \\
+Bengaluru, India \\
+bindhupagadala10@gmail.com}
+\and
+\IEEEauthorblockN{Raghavendra M Devadas}
+\IEEEauthorblockA{\textit{Assistant Professor - Senior Scale, School of Computer Engineering} \\
+\textit{Manipal Institute of Technology} \\
+Bengaluru, India \\
+raghavendra.devadas@manipal.edu}
 }
 
 \maketitle
@@ -66,7 +73,6 @@ MMD and the Wasserstein/optimal-transport distance are both established tools fo
 A related but distinct line of work estimates how well fine-tuning will transfer to a target task or domain (e.g., LogME, H-score, and related proxy measures), typically to decide whether or which pretrained checkpoint to fine-tune. These methods generally require target labels to compute and produce a single global score per task, rather than a per-layer, label-free decomposition usable to guide where PEFT capacity should be spent. Our approach is deliberately label-free and layer-wise, positioning it as complementary to, rather than a replacement for, transferability estimation.
 
 \section{Methodology}
-\label{sec:methodology}
 
 \subsection{Source model and datasets}
 We use RoBERTa-base fine-tuned on MNLI \cite{williams2018mnli} (3 epochs, learning rate $2\times10^{-5}$, batch size 16, AdamW, weight decay 0.01, warmup ratio 0.10) as the frozen source model. We evaluate distribution shift against three target domains: WANLI \cite{liu2022wanli}, constructed via dataset-cartography-guided GPT-3 generation and human filtering over MultiNLI, and ANLI rounds 1--3 \cite{nie2020anli}, constructed via an iterative human-and-model-in-the-loop adversarial procedure in which annotators were shown a live target model and tasked with writing examples that fooled it, with the target model escalating in strength and context diversity across rounds.
@@ -83,7 +89,7 @@ where $m_t \in \{0,1\}$ is the attention mask at token position $t$ and $T$ is t
 \label{sec:drift-metrics}
 For each layer $\ell$, let $X_\ell = \{x_1,\ldots,x_n\}$ and $Y_\ell = \{y_1,\ldots,y_m\}$ denote the pooled source and target representations at that layer.
 
-\paragraph{Maximum Mean Discrepancy.} We use the biased empirical estimator of squared MMD under a Gaussian RBF kernel $k(a,b) = \exp(-\|a-b\|_2^2 / 2\sigma^2)$:
+\textit{1) Maximum Mean Discrepancy:} We use the biased empirical estimator of squared MMD under a Gaussian RBF kernel $k(a,b) = \exp(-\|a-b\|_2^2 / 2\sigma^2)$:
 \begin{equation}
 \begin{split}
 \widehat{\mathrm{MMD}}^2(X_\ell,Y_\ell) = {} & \frac{1}{n^2}\sum_{i,j=1}^{n} k(x_i,x_j) + \frac{1}{m^2}\sum_{i,j=1}^{m} k(y_i,y_j) \\
@@ -95,7 +101,7 @@ The kernel bandwidth $\sigma^2$ is set per-layer by the median heuristic over th
 \sigma^2 = \mathrm{median}\left(\left\{\|z_i - z_j\|_2^2 : z_i, z_j \in Z_\ell,\ i \neq j\right\}\right).
 \end{equation}
 
-\paragraph{Sinkhorn distance.} We L2-normalize each pooled vector, $\tilde x_i = x_i / \|x_i\|_2$, and define the cost matrix $C \in \mathbb{R}^{n\times m}$ by $C_{ij} = \|\tilde x_i - \tilde y_j\|_2$. With uniform marginals $a = \tfrac{1}{n}\mathbf{1}_n$, $b = \tfrac{1}{m}\mathbf{1}_m$, the entropic-regularized optimal transport (Sinkhorn) distance is
+\textit{2) Sinkhorn Distance:} We L2-normalize each pooled vector, $\tilde x_i = x_i / \|x_i\|_2$, and define the cost matrix $C \in \mathbb{R}^{n\times m}$ by $C_{ij} = \|\tilde x_i - \tilde y_j\|_2$. With uniform marginals $a = \tfrac{1}{n}\mathbf{1}_n$, $b = \tfrac{1}{m}\mathbf{1}_m$, the entropic-regularized optimal transport (Sinkhorn) distance is
 \begin{equation}
 W_\lambda(X_\ell,Y_\ell) = \min_{P \in U(a,b)} \ \langle P, C \rangle - \lambda\, H(P),
 \end{equation}
@@ -138,7 +144,7 @@ We verify, rather than assume, that every method trains the same total number of
 
 \section{Experimental Setup}
 
-All training uses the identical configuration as the uniform-LoRA baseline: learning rate $2\times10^{-4}$, 3 epochs, batch size 16, target modules \{query, value\}, LoRA dropout 0.1, bias disabled, seed 42 for the results reported here. Drift profiles were computed at four sample sizes ($N \in \{250, 500, 750, 950\}$) to assess stability. The PEFT rank-allocation mechanism (Sec.~\ref{sec:methodology}-\ref{sec:allocation}) was verified against the real trained checkpoint before any training run, confirming per-layer ranks are applied exactly as specified via PEFT's \texttt{rank\_pattern} argument, that only the intended 24 modules (12 layers $\times$ \{query, value\}) receive LoRA parameters, and the parameter-budget accounting above.
+All training uses the identical configuration as the uniform-LoRA baseline: learning rate $2\times10^{-4}$, 3 epochs, batch size 16, target modules \{query, value\}, LoRA dropout 0.1, bias disabled, seed 42 for the results reported here. Drift profiles were computed at four sample sizes ($N \in \{250, 500, 750, 950\}$) to assess stability. The PEFT rank-allocation mechanism (Sec.~\ref{sec:allocation}) was verified against the real trained checkpoint before any training run, confirming per-layer ranks are applied exactly as specified via PEFT's \texttt{rank\_pattern} argument, that only the intended 24 modules (12 layers $\times$ \{query, value\}) receive LoRA parameters, and the parameter-budget accounting above.
 
 \section{Results}
 \label{sec:results}
@@ -170,14 +176,14 @@ Across $N=250$ to $N=950$, the layer-wise MMD profile varies by at most 13\% (re
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\columnwidth]{figures/sinkhorn_layers.png}
+\includegraphics[width=0.95\columnwidth]{figures/sinkhorn_layers.png}
 \caption{Layer-wise Sinkhorn drift profile ($N{=}950$) for all four targets. The non-monotonic shape (a dip around layers 2--3, then a steady rise to a maximum at layer 12) is shared across targets, consistent with the sample-size-stability result above; note how close the four lines track each other despite the targets' very different zero-shot accuracies (Table~\ref{tab:zeroshot}).}
 \label{fig:sinkhorn-layers}
 \end{figure}
 
 \subsection{MMD and Sinkhorn frequently disagree, in a domain-dependent way}
 \label{sec:results-c}
-Table~\ref{tab:correlation} reports the Spearman correlation between the two metrics' layer-wise profiles for each target, computed after correcting the attention-mask pooling bug described in Sec.~\ref{sec:methodology}-\ref{sec:methodology-reps}; we also report the pre-correction values to illustrate that the correlation pattern itself is sensitive to pooling methodology, not just to the underlying data.
+Table~\ref{tab:correlation} reports the Spearman correlation between the two metrics' layer-wise profiles for each target, computed after correcting the attention-mask pooling bug described in Sec.~\ref{sec:methodology-reps}; we also report the pre-correction values to illustrate that the correlation pattern itself is sensitive to pooling methodology, not just to the underlying data.
 
 \begin{table}[htbp]
 \caption{MMD--Sinkhorn Spearman correlation (layer-wise, $N{=}950$), before and after the pooling correction}
@@ -192,14 +198,13 @@ ANLI R1 & $-0.66$ ($p{<}0.05$) & $-0.63$ ($p{<}0.05$) \\
 ANLI R2 & $-0.65$ ($p{<}0.05$) & $-0.40$ (n.s., $p{=}0.17$) \\
 ANLI R3 & $-0.41$ (n.s.) & $+0.54$ (n.s., $p{=}0.05$--$0.06$) \\
 \bottomrule
+\multicolumn{3}{@{}l}{\footnotesize n.s. = not significant ($p \geq 0.05$).} \\
 \end{tabular}
-\vspace{2pt}
-\footnotesize n.s. = not significant ($p \geq 0.05$).
 \end{table}
 
 Only ANLI R1's significant anti-correlation survives the pooling correction unchanged; ANLI R2 loses significance, and ANLI R3 flips sign entirely, moving from a non-significant negative correlation to a borderline-significant positive one. We interpret this as evidence that whichever drift metric is chosen is not an interchangeable implementation detail: the two metrics can disagree sharply, the disagreement is not uniform across domains, and even the \emph{direction} of disagreement can be sensitive to a representation-extraction detail (pooling) that might otherwise be treated as a minor implementation choice.
 
-This disagreement is not just a statistical abstraction---it produces concretely different rank allocations for the same target. Table~\ref{tab:allocation} and Fig.~\ref{fig:allocation} show the actual per-layer allocation computed for ANLI R1 under each metric. Drift-MMD stays close to the uniform baseline (ranks 6--9 at every layer), whereas Drift-Sinkhorn is sharply non-uniform, falling to 5 at layers 2--5 and rising to the maximum allowed rank of 16 at layer 12. Both allocations satisfy $\sum_\ell r_\ell = 96$ exactly (Sec.~\ref{sec:methodology}-\ref{sec:allocation}), so this is a genuine disagreement about \emph{where} to spend an identical budget, not an artifact of different total capacity.
+This disagreement is not just a statistical abstraction---it produces concretely different rank allocations for the same target. Table~\ref{tab:allocation} and Fig.~\ref{fig:allocation} show the actual per-layer allocation computed for ANLI R1 under each metric. Drift-MMD stays close to the uniform baseline (ranks 6--9 at every layer), whereas Drift-Sinkhorn is sharply non-uniform, falling to 5 at layers 2--5 and rising to the maximum allowed rank of 16 at layer 12. Both allocations satisfy $\sum_\ell r_\ell = 96$ exactly (Sec.~\ref{sec:allocation}), so this is a genuine disagreement about \emph{where} to spend an identical budget, not an artifact of different total capacity.
 
 \begin{table}[htbp]
 \caption{Per-layer LoRA rank allocation for ANLI R1 ($R_{\mathrm{total}}{=}96$ throughout)}
@@ -227,7 +232,7 @@ Layer & Uniform & Drift-MMD & Drift-Sinkhorn \\
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\columnwidth]{figures/allocation_comparison.png}
+\includegraphics[width=0.95\columnwidth]{figures/allocation_comparison.png}
 \caption{Per-layer rank allocation for ANLI R1 under uniform, Drift-MMD, and Drift-Sinkhorn allocation. Drift-MMD closely tracks uniform allocation; Drift-Sinkhorn concentrates capacity in the later layers.}
 \label{fig:allocation}
 \end{figure}
@@ -255,10 +260,10 @@ ANLI R3 & 0.0975 & \textbf{0.4834} & \textbf{28.58} \\
 We attribute this dissociation to how the benchmarks were constructed rather than to a failure of either metric. ANLI's difficulty is adversarially engineered: annotators were shown a live model and explicitly tasked with finding inputs that fooled it \cite{nie2020anli}, which can produce examples that are representationally unremarkable to a frozen model while still defeating its reasoning. WANLI, by contrast, is constructed via dataset-cartography-guided generation of examples matching challenging \emph{patterns} \cite{liu2022wanli}, which plausibly produces a larger surface-level shift without a correspondingly large increase in reasoning difficulty. This suggests representational drift and adaptation difficulty are related but distinct constructs, and that benchmarks whose difficulty is adversarially constructed are a meaningful stress test for any drift-based adaptation method, rather than a case to be excluded.
 
 \subsection{Parameter budget verification}
-Verification against the trained checkpoint confirmed that per-layer ranks are applied exactly as specified by the allocator (24 of 24 modules matched their assigned rank exactly), that only the intended query/value modules in the 12 encoder layers receive LoRA parameters (24 modules found, as expected), and that the LoRA-only parameter count for a representative non-uniform allocation matched the allocator's prediction of 294{,}912 exactly once the classifier head's 592{,}899 parameters are accounted for separately (Sec.~\ref{sec:methodology}-\ref{sec:allocation}). This was independently reproduced on two PEFT library versions (0.17.0 and 0.20.0), giving us confidence the 887{,}811-parameter budget-matching claim is not an artifact of one specific library version.
+Verification against the trained checkpoint confirmed that per-layer ranks are applied exactly as specified by the allocator (24 of 24 modules matched their assigned rank exactly), that only the intended query/value modules in the 12 encoder layers receive LoRA parameters (24 modules found, as expected), and that the LoRA-only parameter count for a representative non-uniform allocation matched the allocator's prediction of 294{,}912 exactly once the classifier head's 592{,}899 parameters are accounted for separately (Sec.~\ref{sec:allocation}). This was independently reproduced on two PEFT library versions (0.17.0 and 0.20.0), giving us confidence the 887{,}811-parameter budget-matching claim is not an artifact of one specific library version.
 
 \subsection{Diagnostic sanity check: application to real LoRA training}
-Table~\ref{tab:peft} reports a diagnostic sanity check: a first application of each allocation method to real LoRA training on ANLI R1 and R2, at a single seed. We report this as a sanity check on our primary finding, not as an independently powered PEFT benchmark: with one seed, the exact same configuration (Drift-MMD, ANLI R1) re-run on different hardware produced a 0.5-point accuracy swing (44.3\% vs.\ 43.8\%) from re-running the identical setup alone, which is as large as or larger than every method-to-method difference in the table. No method shows a consistent advantage over uniform allocation at this sample size, and the inverse-drift control performs comparably to the drift-guided methods, which is not the pattern that would support the hypothesis that drift-guided allocation helps. This is consistent with, rather than independent of, our central diagnostic finding: if the underlying drift signal were a reliable adaptation-difficulty prior (Secs.~\ref{sec:results}-\ref{sec:results-c} and~\ref{sec:results}-\ref{sec:results-d} show it is not yet established to be), we would expect drift-guided allocation to separate from its own inverse; that it does not is exactly what the measurement-level findings predict. We do not interpret this as a definitive negative result either---one seed provides essentially no statistical power to distinguish a true null from a small real effect---and report it only to be transparent about the current state of evidence.
+Table~\ref{tab:peft} reports a diagnostic sanity check: a first application of each allocation method to real LoRA training on ANLI R1 and R2, at a single seed. We report this as a sanity check on our primary finding, not as an independently powered PEFT benchmark: with one seed, the exact same configuration (Drift-MMD, ANLI R1) re-run on different hardware produced a 0.5-point accuracy swing (44.3\% vs.\ 43.8\%) from re-running the identical setup alone, which is as large as or larger than every method-to-method difference in the table. No method shows a consistent advantage over uniform allocation at this sample size, and the inverse-drift control performs comparably to the drift-guided methods, which is not the pattern that would support the hypothesis that drift-guided allocation helps. This is consistent with, rather than independent of, our central diagnostic finding: if the underlying drift signal were a reliable adaptation-difficulty prior (Secs.~\ref{sec:results-c} and~\ref{sec:results-d} show it is not yet established to be), we would expect drift-guided allocation to separate from its own inverse; that it does not is exactly what the measurement-level findings predict. We do not interpret this as a definitive negative result either---one seed provides essentially no statistical power to distinguish a true null from a small real effect---and report it only to be transparent about the current state of evidence.
 
 \begin{table}[htbp]
 \caption{Diagnostic sanity check: single-seed (42) LoRA comparison, 887{,}811 trainable parameters per method}
@@ -289,7 +294,7 @@ Target & Method & Accuracy (\%) & Macro F1 (\%) \\
 
 \section{Discussion}
 
-The two findings in Secs.~\ref{sec:results}-\ref{sec:results-c} and~\ref{sec:results}-\ref{sec:results-d} together argue for treating ``measuring domain shift'' as a nontrivial methodological question rather than a solved preliminary step. If a researcher had chosen only MMD, or only Sinkhorn, as the ``drift'' signal for ANLI R2 before and after our pooling fix, they would have reported a significant finding that later disappeared---not because the underlying phenomenon changed, but because a representation-extraction detail changed. Similarly, a researcher assuming drift magnitude tracks adaptation difficulty would be misled specifically on ANLI R3, in a way explainable by the benchmark's adversarial construction rather than by any flaw in the metrics themselves. We take this as motivation for validating drift metrics against a measured ground truth---for instance, using a dataset's internal, labeled sub-domains (such as MNLI's five annotated genres) to obtain a directly measured transfer-difficulty ground truth against which candidate metrics can be checked---before trusting any of them on benchmarks, like ANLI and WANLI, where the true magnitude of shift is not independently known. We have not yet conducted this controlled validation; we describe it as the most important next step in Sec.~\ref{sec:limitations}.
+The two findings in Secs.~\ref{sec:results-c} and~\ref{sec:results-d} together argue for treating ``measuring domain shift'' as a nontrivial methodological question rather than a solved preliminary step. If a researcher had chosen only MMD, or only Sinkhorn, as the ``drift'' signal for ANLI R2 before and after our pooling fix, they would have reported a significant finding that later disappeared---not because the underlying phenomenon changed, but because a representation-extraction detail changed. Similarly, a researcher assuming drift magnitude tracks adaptation difficulty would be misled specifically on ANLI R3, in a way explainable by the benchmark's adversarial construction rather than by any flaw in the metrics themselves. We take this as motivation for validating drift metrics against a measured ground truth---for instance, using a dataset's internal, labeled sub-domains (such as MNLI's five annotated genres) to obtain a directly measured transfer-difficulty ground truth against which candidate metrics can be checked---before trusting any of them on benchmarks, like ANLI and WANLI, where the true magnitude of shift is not independently known. We have not yet conducted this controlled validation; we describe it as the most important next step in Sec.~\ref{sec:limitations}.
 
 \section{Limitations and Future Work}
 \label{sec:limitations}
@@ -298,7 +303,7 @@ This paper reports a diagnostic, methodological study, and we scope our claims a
 
 \begin{itemize}
 \item \textbf{What we claim, and what we do not.} We claim that MMD and Sinkhorn drift profiles disagree in a domain-dependent way and that drift magnitude dissociates from adaptation difficulty on at least one benchmark (ANLI R3); we do \emph{not} claim that drift-guided LoRA allocation helps or hurts downstream fine-tuning. The single-seed, two-of-four-target PEFT result in Table~\ref{tab:peft} is a sanity check consistent with this scope, not an independently powered benchmark comparison; a pre-registered, multi-seed, all-four-target evaluation would be required to support any stronger PEFT-level claim, and we do not make one here.
-\item \textbf{No controlled ground-truth validation of the drift metrics yet.} Our validity evidence for MMD and Sinkhorn is currently limited to stability (Sec.~\ref{sec:results}-\ref{sec:results-b}) and cross-metric correlation on real, uncontrolled target domains, not a direct measurement of either metric's correspondence to true adaptation difficulty. We propose MNLI's five annotated genres (fiction, government, slate, telephone, travel) as a controlled internal testbed for this: measured cross-genre transfer-accuracy degradation would give a ground truth against which MMD, Sinkhorn, CKA, and a classifier-based $\mathcal{H}$-divergence \cite{bendavid2010theory} could all be checked on equal footing (Sec.~\ref{sec:related} explains our reservation about CKA specifically) before any of them is trusted on WANLI/ANLI. This is, in our view, the most important next step and is not yet run.
+\item \textbf{No controlled ground-truth validation of the drift metrics yet.} Our validity evidence for MMD and Sinkhorn is currently limited to stability (Sec.~\ref{sec:results-b}) and cross-metric correlation on real, uncontrolled target domains, not a direct measurement of either metric's correspondence to true adaptation difficulty. We propose MNLI's five annotated genres (fiction, government, slate, telephone, travel) as a controlled internal testbed for this: measured cross-genre transfer-accuracy degradation would give a ground truth against which MMD, Sinkhorn, CKA, and a classifier-based $\mathcal{H}$-divergence \cite{bendavid2010theory} could all be checked on equal footing (Sec.~\ref{sec:related} explains our reservation about CKA specifically) before any of them is trusted on WANLI/ANLI. This is, in our view, the most important next step and is not yet run.
 \item \textbf{Benchmark framing.} WANLI and ANLI are stylistic and adversarially-constructed shifts within a single general NLI task, not shifts across semantically distinct domains (e.g., legal, biomedical, financial). We describe this work as addressing \emph{distribution shift} adaptation rather than \emph{domain} adaptation in the cross-topic sense, and do not present WANLI/ANLI as domain-adaptation benchmarks without this qualification.
 \item \textbf{Comparisons out of scope here.} A budget-matched comparison against AdaLoRA, and a causal (rather than correlational) single-layer capacity intervention, would both sharpen this diagnostic picture; neither is required to support the claims we actually make, and neither is attempted in this paper.
 \end{itemize}
