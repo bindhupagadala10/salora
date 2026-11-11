@@ -2,6 +2,7 @@
 \IEEEoverridecommandlockouts
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
@@ -15,7 +16,7 @@
 
 \begin{document}
 
-\title{SALoRA: Measuring Layer-wise Representation Drift for Parameter-Efficient Adaptation}
+\title{Can Frozen Representation Drift Guide PEFT Allocation? An Empirical Study on Layer-Wise Discrepancy and Adaptation Difficulty}
 
 \author{
 \IEEEauthorblockN{Bindhu Pagadala}
@@ -26,7 +27,7 @@ bindhu.sri@workato.com}
 \maketitle
 
 \begin{abstract}
-Parameter-efficient fine-tuning (PEFT) methods such as Low-Rank Adaptation (LoRA) typically allocate adaptation capacity either uniformly across layers or dynamically during training, from signals such as gradient magnitude or singular-value importance. Neither strategy considers, before any target-domain training begins, how a target domain's input distribution has shifted relative to the domain a model was originally trained on. We investigate whether such \emph{ante-hoc} representation drift -- measured once, from frozen source-model representations, using Maximum Mean Discrepancy (MMD) and Sinkhorn (entropic-regularized Wasserstein) distance -- is a reliable and useful signal for planning layer-wise LoRA rank allocation. Using a RoBERTa-base model trained on MNLI and evaluated under distribution shift on WANLI and ANLI (rounds 1--3), we find that (i) both drift metrics are stable and repeatable across sample sizes (MMD varying $\leq$13\%, Sinkhorn $\leq$1.1\%, relative, across $N{=}250$--$950$), but (ii) the two metrics frequently disagree with each other, and the direction and significance of their (dis)agreement is itself domain-dependent, and (iii) drift magnitude does not monotonically track zero-shot accuracy degradation: ANLI round 3 is the hardest target by accuracy but shows the \emph{least} drift of all four targets, a dissociation we trace to how adversarially-constructed benchmarks are built. We implement a verified, budget-matched rank allocator (SALoRA) and report a first, single-seed application of drift-guided allocation to real LoRA training, which shows no detectable advantage over uniform allocation at the present sample size -- a preliminary, honestly-reported result, not a final one. We argue the central contribution of this work is methodological: a rigorous characterization of when representation-drift metrics can and cannot be trusted as adaptation-planning signals, which we recommend precede any claim that such a signal improves PEFT in practice.
+Parameter-efficient fine-tuning methods such as LoRA typically allocate adaptation capacity uniformly, or adapt it during training from gradient- or weight-derived signals. We ask a narrower question: can \emph{ante-hoc} representation drift -- measured once, before any target-domain training, from a frozen source model's own representations -- serve as a trustworthy prior for layer-wise rank allocation? Using RoBERTa-base trained on MNLI and evaluated under distribution shift on WANLI and ANLI (rounds 1--3), we measure layer-wise drift with two established metrics, Maximum Mean Discrepancy and Sinkhorn distance, and find three things. First, each metric is independently stable across sample sizes, but the two metrics disagree sharply with each other -- significantly anti-correlated on ANLI R1/R2 (Spearman $\rho\approx-0.6$, $p<0.05$) -- and this disagreement pattern is itself sensitive to a low-level pooling choice. Second, drift magnitude dissociates from zero-shot adaptation difficulty: ANLI R3 is the hardest target by accuracy yet shows the \emph{least} measured drift of all four domains. Third, under a programmatically verified, budget-matched comparison, drift-guided rank allocation shows no measurable advantage over uniform or even inverted-drift allocation. We argue these are not a failed method but a diagnostic result: ante-hoc geometric drift metrics should not be trusted as PEFT-planning signals without independent validation against ground-truth adaptation difficulty, which we outline a protocol for.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -39,7 +40,7 @@ Low-Rank Adaptation (LoRA) \cite{hu2021lora} has become a standard parameter-eff
 
 This raises a narrower, previously underexplored question: can a signal computed \emph{before} any target-domain training begins -- purely from how a target domain's unlabeled data looks to the frozen source model's existing representations -- usefully inform where to allocate LoRA rank? We refer to such a signal as \emph{ante-hoc}, since it requires no gradient computation, no labels, and no training on the target domain at all.
 
-We operationalize this question using two established measures of distributional difference, Maximum Mean Discrepancy (MMD) and Sinkhorn (entropic-regularized Wasserstein) distance, computed layer-by-layer between a frozen RoBERTa-base model's representations of its source domain (MNLI \cite{williams2018mnli}) and three target domains that are known to cause substantial zero-shot degradation: WANLI \cite{liu2022wanli} and ANLI rounds 1--3 \cite{nie2020anli}. We use the resulting per-layer drift profile to allocate a fixed LoRA rank budget across layers (a method we call SALoRA), and compare this to uniform allocation and to randomized/inverted-drift control allocations under an identical, programmatically-verified total trainable-parameter budget.
+We operationalize this question using two established measures of distributional difference, Maximum Mean Discrepancy (MMD) and Sinkhorn (entropic-regularized Wasserstein) distance, computed layer-by-layer between a frozen RoBERTa-base model's representations of its source domain (MNLI \cite{williams2018mnli}) and three target domains that are known to cause substantial zero-shot degradation: WANLI \cite{liu2022wanli} and ANLI rounds 1--3 \cite{nie2020anli}. We use the resulting per-layer drift profile to allocate a fixed LoRA rank budget across layers, and compare this to uniform allocation and to randomized/inverted-drift control allocations under an identical, programmatically-verified total trainable-parameter budget.
 
 Rather than present this as a finished method with a positive result, we report what the data actually show at the current stage of experimentation, including a preliminary PEFT comparison that does not yet show an advantage for drift-guided allocation. We argue this is itself informative: before any drift-guided PEFT method can be trusted, the drift measurement it depends on needs to be independently characterized, and we show that MMD and Sinkhorn disagree with each other in ways that are domain-dependent and that drift magnitude dissociates from actual adaptation difficulty on at least one benchmark. Our contributions are:
 
@@ -47,7 +48,7 @@ Rather than present this as a finished method with a positive result, we report 
 \item A reproducible, sample-size-stable methodology for measuring layer-wise representation drift between a source and target domain, using a frozen, task-fine-tuned transformer's own representations.
 \item An empirical finding that two established distributional-distance metrics (MMD, Sinkhorn) disagree with each other in a way that is not uniform across target domains, and that this disagreement pattern is sensitive to representation-pooling methodology.
 \item An empirical finding that drift magnitude does not monotonically track zero-shot adaptation difficulty, with an explanation grounded in how the benchmarks were constructed.
-\item A verified, budget-matched layer-wise rank-allocation algorithm and training pipeline (SALoRA), including a programmatic confirmation that PEFT's automatic classifier-head handling must be accounted for to make parameter-budget-matched comparisons valid.
+\item A verified, budget-matched layer-wise rank-allocation algorithm and training pipeline, including a programmatic confirmation that PEFT's automatic classifier-head handling must be accounted for to make parameter-budget-matched comparisons valid.
 \item A preliminary, honestly-reported application of this pipeline to real LoRA training, reported as inconclusive pending a properly-powered multi-seed evaluation.
 \end{enumerate}
 
@@ -56,8 +57,6 @@ Rather than present this as a finished method with a positive result, we report 
 
 \subsection{Low-rank and adaptive-rank PEFT}
 LoRA \cite{hu2021lora} freezes pretrained weights and learns a low-rank additive update at a single rank applied uniformly across targeted layers. AdaLoRA \cite{zhang2023adalora} was, to our knowledge, the first method to allocate rank non-uniformly, parameterizing updates via a singular-value decomposition and pruning singular values by an importance score computed during training. A number of subsequent methods extend this idea with different in-training signals: La-LoRA \cite{gu2025lalora} uses a dynamic, contribution-driven parameter budget; LAARA \cite{tripathi2026laara} uses lightweight diagonal Fisher-information estimates; ElaLoRA \cite{chang2025elalora} elastically prunes and expands rank during training; BaRA \cite{duan2026bara} performs Bayesian inference over per-layer importance; and SR-LoRA \cite{zhang2025srlora} uses the stable rank of the frozen pretrained weight matrices themselves as a static prior. In every case, the allocation signal is either computed during fine-tuning or derived from the model's weights alone, independent of the target domain's data distribution. None of these methods allocate rank from a pre-computed measurement of how the target domain's own data distribution differs from the source domain's -- which is the signal this work investigates.
-
-We note a naming collision: Li et al.\ \cite{li2025salora} name an unrelated, previously published method (safety-alignment-preserving LoRA) ``SaLoRA,'' differing from this work's ``SALoRA'' only in capitalization. We flag this explicitly for disambiguation; the two methods address unrelated problems (safety alignment vs.\ domain-shift-guided rank allocation) and share no technical relationship.
 
 \subsection{Distributional distance metrics for domain shift}
 MMD and the Wasserstein/optimal-transport distance are both established tools for quantifying and minimizing domain divergence \cite{shen2017wasserstein,su2019wasserstein}, typically as an adversarial training objective to be minimized during representation learning, rather than as a diagnostic measurement taken before training. Wang et al.\ \cite{wang2020rethinkmmd} specifically caution that standard MMD-based domain adaptation can be insensitive to certain real distributional shifts, a concern our own finding of MMD/Sinkhorn disagreement is consistent with. Centered Kernel Alignment (CKA) \cite{kornblith2019cka} is a further candidate similarity measure, but was designed to compare representation \emph{spaces} (e.g., two layers, possibly from different networks) on the \emph{same} input data; using it to compare the same layer's representations across \emph{different} data, as a domain-shift measure, repurposes a tool whose explicit invariances (to rotation and isotropic scaling) may under-report exactly the kind of shift we wish to detect. For this reason we do not use CKA as a primary signal in this work, though we discuss it further as a candidate for controlled validation in Section~\ref{sec:limitations}. A complementary, more directly adaptation-theoretic alternative is the classifier-induced $\mathcal{H}$-divergence of Ben-David et al.\ \cite{bendavid2010theory}, estimable cheaply via a domain classifier trained on frozen representations; we have not yet implemented this and note it as future work.
@@ -72,23 +71,62 @@ We use RoBERTa-base fine-tuned on MNLI \cite{williams2018mnli} (3 epochs, learni
 
 \subsection{Representation extraction}
 \label{sec:methodology-reps}
-For a given target domain and sample size $N$, we extract hidden states at all 13 layers (the embedding layer plus 12 encoder layers) of the frozen source model for both a source sample (drawn from MNLI) and the target sample, using attention-mask-weighted mean pooling: each token position is included in the mean only if its attention mask is 1, and the sum is divided by the per-example count of non-padding tokens, not the batch's padded sequence length. We verified this matters: an earlier implementation using unweighted mean pooling over the full padded sequence produced systematically different -- and, given dynamic per-batch padding, non-deterministic across batch composition -- pooled vectors.
+For a source sample $X$ (drawn from MNLI) and a target sample $Y$, we extract hidden states $h_\ell(x) \in \mathbb{R}^{768}$ at every layer $\ell \in \{0,\ldots,12\}$ (embedding layer plus 12 encoder layers) of the frozen source model, using attention-mask-weighted mean pooling:
+\begin{equation}
+\bar h_\ell(x) = \frac{\sum_{t=1}^{T} m_t \, h_{\ell,t}(x)}{\sum_{t=1}^{T} m_t},
+\end{equation}
+where $m_t \in \{0,1\}$ is the attention mask at token position $t$ and $T$ is the (dynamically, per-batch) padded sequence length. We verified this matters: naive unweighted pooling over the full padded sequence ($\frac{1}{T}\sum_t h_{\ell,t}$) includes padding positions in the mean and is non-deterministic across batch composition, since $T$ varies with the other examples in a batch.
 
 \subsection{Drift metrics}
-For each layer $\ell$, we compute two measures of drift between the source sample $X_\ell$ and target sample $Y_\ell$:
+\label{sec:drift-metrics}
+For each layer $\ell$, let $X_\ell = \{x_1,\ldots,x_n\}$ and $Y_\ell = \{y_1,\ldots,y_m\}$ denote the pooled source and target representations at that layer.
 
-\textbf{MMD}: a Gaussian RBF-kernel Maximum Mean Discrepancy, with kernel bandwidth set by the median heuristic (excluding zero/diagonal distances), using the standard biased estimator
+\paragraph{Maximum Mean Discrepancy.} We use the biased empirical estimator of squared MMD under a Gaussian RBF kernel $k(a,b) = \exp(-\|a-b\|_2^2 / 2\sigma^2)$:
 \begin{equation}
-\mathrm{MMD}^2(X,Y) = \frac{1}{n^2}\sum_{i,j} k(x_i,x_j) + \frac{1}{m^2}\sum_{i,j} k(y_i,y_j) - \frac{2}{nm}\sum_{i,j} k(x_i,y_j).
+\widehat{\mathrm{MMD}}^2(X_\ell,Y_\ell) = \frac{1}{n^2}\sum_{i,j=1}^{n} k(x_i,x_j) + \frac{1}{m^2}\sum_{i,j=1}^{m} k(y_i,y_j) - \frac{2}{nm}\sum_{i=1}^{n}\sum_{j=1}^{m} k(x_i,y_j).
+\end{equation}
+The kernel bandwidth $\sigma^2$ is set per-layer by the median heuristic over the pooled set $Z_\ell = X_\ell \cup Y_\ell$, excluding zero (self-)distances:
+\begin{equation}
+\sigma^2 = \mathrm{median}\left(\left\{\|z_i - z_j\|_2^2 : z_i, z_j \in Z_\ell,\ i \neq j\right\}\right).
 \end{equation}
 
-\textbf{Sinkhorn distance}: an entropic-regularized optimal-transport distance (regularization $=1.0$) with a Euclidean cost matrix over L2-normalized representations and uniform marginals, computed via the stabilized Sinkhorn-Knopp algorithm.
+\paragraph{Sinkhorn distance.} We L2-normalize each pooled vector, $\tilde x_i = x_i / \|x_i\|_2$, and define the cost matrix $C \in \mathbb{R}^{n\times m}$ by $C_{ij} = \|\tilde x_i - \tilde y_j\|_2$. With uniform marginals $a = \tfrac{1}{n}\mathbf{1}_n$, $b = \tfrac{1}{m}\mathbf{1}_m$, the entropic-regularized optimal transport (Sinkhorn) distance is
+\begin{equation}
+W_\lambda(X_\ell,Y_\ell) = \min_{P \in U(a,b)} \ \langle P, C \rangle - \lambda\, H(P),
+\end{equation}
+\begin{equation}
+U(a,b) = \{P \in \mathbb{R}_{\geq 0}^{n \times m} : P\mathbf{1}_m = a,\ P^\top \mathbf{1}_n = b\},
+\end{equation}
+\begin{equation}
+H(P) = -\sum_{i,j} P_{ij}\log P_{ij},
+\end{equation}
+with regularization strength $\lambda = 1.0$, solved via the Sinkhorn--Knopp matrix-scaling iteration $P^{(k)} = \mathrm{diag}(u^{(k)})\, K \,\mathrm{diag}(v^{(k)})$, $K_{ij} = \exp(-C_{ij}/\lambda)$, with $u^{(k)}, v^{(k)}$ updated by alternating projection onto the marginal constraints until convergence.
 
 Both metrics are computed and reported entirely separately for every layer, target, and sample size; \emph{we never average or otherwise combine them into a single score}, for reasons that Section~\ref{sec:results} shows are empirically justified: the two metrics are sensitive to different aspects of a distributional difference (MMD primarily to mean discrepancy in a nonlinear kernel-induced feature space; Sinkhorn to the full transport cost, including higher-order shape differences), and combining them would obscure a disagreement we show is itself informative.
 
 \subsection{Rank allocation algorithm}
 \label{sec:allocation}
-Given a drift profile $D_1,\ldots,D_{12}$ over the 12 encoder layers (the embedding layer is excluded, since no LoRA module exists there), we compute normalized weights $w_\ell = D_\ell / \sum_j D_j$ and raw ranks $\mathrm{raw}_\ell = R_{\mathrm{total}} \cdot w_\ell$, where $R_{\mathrm{total}}=96$ (matching a uniform baseline of rank 8 across 12 layers). Raw ranks are rounded to integers via largest-remainder (Hamilton) apportionment: each layer receives $\lfloor \mathrm{raw}_\ell \rfloor$, and the $R_{\mathrm{total}} - \sum_\ell \lfloor \mathrm{raw}_\ell \rfloor$ layers with the largest fractional remainder each receive one additional unit, with ties broken by layer index for determinism. Ranks are then clamped to $[r_{\min}, r_{\max}] = [1, 16]$; any shortfall or surplus introduced by clamping is redistributed one unit at a time to the layer(s) furthest from their clamp bound, until $\sum_\ell r_\ell = R_{\mathrm{total}}$ exactly. LoRA $\alpha=16$ is held constant across every layer and every method (i.e., not scaled with rank), so that rank is the only variable manipulated between methods. This procedure is applied identically, with only $D_\ell$ differing, for: \textbf{SALoRA-MMD} and \textbf{SALoRA-Sinkhorn} (the two drift profiles), \textbf{Random} (a uniform-random partition of $R_{\mathrm{total}}$ with a fixed, logged allocation seed, independent of the training seed), and \textbf{Inverse-drift} ($D'_\ell = 1/(D_\ell+\epsilon)$, $\epsilon=10^{-8}$), so that any difference in downstream results is attributable to the allocation signal, not to the rounding/apportionment logic.
+Given a drift profile $D_1,\ldots,D_{12}$ over the 12 encoder layers (the embedding layer is excluded, since no LoRA module exists there), we compute normalized weights $w_\ell = D_\ell / \sum_j D_j$ and raw ranks $\mathrm{raw}_\ell = R_{\mathrm{total}} \cdot w_\ell$, where $R_{\mathrm{total}}=96$ (matching a uniform baseline of rank 8 across 12 layers). Raw ranks are converted to integers via largest-remainder (Hamilton) apportionment, Algorithm~\ref{alg:hamilton}, then clamped to $[r_{\min}, r_{\max}] = [1, 16]$; any shortfall or surplus introduced by clamping is redistributed one unit at a time to the layer(s) furthest from their clamp bound, until $\sum_\ell r_\ell = R_{\mathrm{total}}$ exactly. LoRA $\alpha=16$ is held constant across every layer and every method (i.e., not scaled with rank), so that rank is the only variable manipulated between methods.
+
+\begin{algorithm}[htbp]
+\caption{Hamilton (largest-remainder) rank apportionment}
+\label{alg:hamilton}
+\begin{algorithmic}[1]
+\REQUIRE drift profile $D_1,\ldots,D_{12}$, budget $R_{\mathrm{total}}$
+\STATE $w_\ell \gets D_\ell / \sum_j D_j$ for each $\ell$
+\STATE $\mathrm{raw}_\ell \gets R_{\mathrm{total}} \cdot w_\ell$
+\STATE $r_\ell \gets \lfloor \mathrm{raw}_\ell \rfloor$ for each $\ell$
+\STATE $\mathrm{rem}_\ell \gets \mathrm{raw}_\ell - r_\ell$ \COMMENT{fractional remainder}
+\STATE $k \gets R_{\mathrm{total}} - \sum_\ell r_\ell$
+\STATE Sort layers by $\mathrm{rem}_\ell$ descending, ties broken by layer index
+\FOR{each of the top $k$ layers in sorted order}
+  \STATE $r_\ell \gets r_\ell + 1$
+\ENDFOR
+\RETURN $r_1,\ldots,r_{12}$ \COMMENT{$\sum_\ell r_\ell = R_{\mathrm{total}}$ exactly}
+\end{algorithmic}
+\end{algorithm}
+
+This procedure is applied identically, with only $D_\ell$ differing, for: \textbf{Drift-MMD} and \textbf{Drift-Sinkhorn} (the two drift profiles), \textbf{Random} (a uniform-random partition of $R_{\mathrm{total}}$ with a fixed, logged allocation seed, independent of the training seed), and \textbf{Inverse-drift} ($D'_\ell = 1/(D_\ell+\epsilon)$, $\epsilon=10^{-8}$), so that any difference in downstream results is attributable to the allocation signal, not to the rounding/apportionment logic.
 
 \subsection{Parameter budget verification}
 We verify, rather than assume, that every method trains the same total number of parameters. We discovered that the PEFT library's \texttt{get\_peft\_model} automatically wraps the classifier head in a trainable \texttt{modules\_to\_save} entry when \texttt{task\_type=SEQ\_CLS}, contributing 592{,}899 trainable parameters independent of the LoRA rank pattern. We confirmed this constant holds identically for both a uniform ($r{=}8$) configuration and a deliberately non-uniform allocation, and re-confirmed it on two independent PEFT library versions (0.17.0 and 0.20.0). Combined with the LoRA-only budget of $\sum_\ell 2 \times r_\ell \times 1536 = 294{,}912$ parameters (query and value projections, hidden size 768), every non-zero-shot method in this study trains exactly 887{,}811 parameters in total, verified programmatically and logged per run.
@@ -152,7 +190,7 @@ ANLI R3 & $-0.41$ (n.s.) & $+0.54$ (n.s., $p{=}0.05$--$0.06$) \\
 
 Only ANLI R1's significant anti-correlation survives the pooling correction unchanged; ANLI R2 loses significance, and ANLI R3 flips sign entirely, moving from a non-significant negative correlation to a borderline-significant positive one. We interpret this as evidence that whichever drift metric is chosen is not an interchangeable implementation detail: the two metrics can disagree sharply, the disagreement is not uniform across domains, and even the \emph{direction} of disagreement can be sensitive to a representation-extraction detail (pooling) that might otherwise be treated as a minor implementation choice.
 
-This disagreement is not just a statistical abstraction -- it produces concretely different rank allocations for the same target. Table~\ref{tab:allocation} and Fig.~\ref{fig:allocation} show the actual per-layer allocation computed for ANLI R1 under each metric. SALoRA-MMD stays close to the uniform baseline (ranks 6--9 at every layer), whereas SALoRA-Sinkhorn is sharply non-uniform, falling to 5 at layers 2--5 and rising to the maximum allowed rank of 16 at layer 12. Both allocations satisfy $\sum_\ell r_\ell = 96$ exactly (Section~\ref{sec:allocation}), so this is a genuine disagreement about \emph{where} to spend an identical budget, not an artifact of different total capacity.
+This disagreement is not just a statistical abstraction -- it produces concretely different rank allocations for the same target. Table~\ref{tab:allocation} and Fig.~\ref{fig:allocation} show the actual per-layer allocation computed for ANLI R1 under each metric. Drift-MMD stays close to the uniform baseline (ranks 6--9 at every layer), whereas Drift-Sinkhorn is sharply non-uniform, falling to 5 at layers 2--5 and rising to the maximum allowed rank of 16 at layer 12. Both allocations satisfy $\sum_\ell r_\ell = 96$ exactly (Section~\ref{sec:allocation}), so this is a genuine disagreement about \emph{where} to spend an identical budget, not an artifact of different total capacity.
 
 \begin{table}[htbp]
 \caption{Per-layer LoRA rank allocation for ANLI R1 ($R_{\mathrm{total}}{=}96$ throughout)}
@@ -160,7 +198,7 @@ This disagreement is not just a statistical abstraction -- it produces concretel
 \centering
 \begin{tabular}{cccc}
 \toprule
-Layer & Uniform & SALoRA-MMD & SALoRA-Sinkhorn \\
+Layer & Uniform & Drift-MMD & Drift-Sinkhorn \\
 \midrule
 1  & 8 & 8 & 8 \\
 2  & 8 & 9 & 5 \\
@@ -181,7 +219,7 @@ Layer & Uniform & SALoRA-MMD & SALoRA-Sinkhorn \\
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{figures/allocation_comparison.png}
-\caption{Per-layer rank allocation for ANLI R1 under uniform, SALoRA-MMD, and SALoRA-Sinkhorn allocation. SALoRA-MMD closely tracks uniform allocation; SALoRA-Sinkhorn concentrates capacity in the later layers.}
+\caption{Per-layer rank allocation for ANLI R1 under uniform, Drift-MMD, and Drift-Sinkhorn allocation. Drift-MMD closely tracks uniform allocation; Drift-Sinkhorn concentrates capacity in the later layers.}
 \label{fig:allocation}
 \end{figure}
 
@@ -210,7 +248,7 @@ We attribute this dissociation to how the benchmarks were constructed rather tha
 Verification against the trained checkpoint confirmed that per-layer ranks are applied exactly as specified by the allocator (24 of 24 modules matched their assigned rank exactly), that only the intended query/value modules in the 12 encoder layers receive LoRA parameters (24 modules found, as expected), and that the LoRA-only parameter count for a representative non-uniform allocation matched the allocator's prediction of 294{,}912 exactly once the classifier head's 592{,}899 parameters are accounted for separately (Section~\ref{sec:allocation}). This was independently reproduced on two PEFT library versions (0.17.0 and 0.20.0), giving us confidence the 887{,}811-parameter budget-matching claim is not an artifact of one specific library version.
 
 \subsection{Preliminary application to LoRA training}
-Table~\ref{tab:peft} reports a first application of each allocation method to real LoRA training on ANLI R1 and R2, at a single seed. We report this explicitly as preliminary: with one seed, the exact same configuration (SALoRA-MMD, ANLI R1) re-run on different hardware produced a 0.5-point accuracy swing (44.3\% vs.\ 43.8\%) from re-running the identical setup alone, which is as large as or larger than every method-to-method difference in the table. No method shows a consistent advantage over uniform allocation at this sample size, and the inverse-drift control performs comparably to the drift-guided methods, which is not the pattern that would support the hypothesis that drift-guided allocation helps. We do not interpret this as evidence against the hypothesis either -- one seed provides essentially no statistical power to distinguish a true null from a small real effect -- and report it only to be transparent about the current state of evidence.
+Table~\ref{tab:peft} reports a first application of each allocation method to real LoRA training on ANLI R1 and R2, at a single seed. We report this explicitly as preliminary: with one seed, the exact same configuration (Drift-MMD, ANLI R1) re-run on different hardware produced a 0.5-point accuracy swing (44.3\% vs.\ 43.8\%) from re-running the identical setup alone, which is as large as or larger than every method-to-method difference in the table. No method shows a consistent advantage over uniform allocation at this sample size, and the inverse-drift control performs comparably to the drift-guided methods, which is not the pattern that would support the hypothesis that drift-guided allocation helps. We do not interpret this as evidence against the hypothesis either -- one seed provides essentially no statistical power to distinguish a true null from a small real effect -- and report it only to be transparent about the current state of evidence.
 
 \begin{table}[htbp]
 \caption{Preliminary LoRA comparison, single seed (42), 887{,}811 trainable parameters per method}
@@ -222,16 +260,16 @@ Target & Method & Accuracy (\%) & Macro F1 (\%) \\
 \midrule
 \multirow{6}{*}{ANLI R1}
  & Uniform (baseline) & 44.4 & 44.03 \\
- & SALoRA-MMD & 43.8--44.3 & 43.4--43.9 \\
- & SALoRA-Sinkhorn & 44.4 & 44.03 \\
+ & Drift-MMD & 43.8--44.3 & 43.4--43.9 \\
+ & Drift-Sinkhorn & 44.4 & 44.03 \\
  & Random & 43.9 & 43.63 \\
  & Inverse-MMD & 44.3 & 43.83 \\
  & Inverse-Sinkhorn & 44.4 & 44.09 \\
 \midrule
 \multirow{6}{*}{ANLI R2}
  & Uniform (baseline) & 40.9 & 39.80 \\
- & SALoRA-MMD & 40.8 & 39.75 \\
- & SALoRA-Sinkhorn & 40.7 & 39.44 \\
+ & Drift-MMD & 40.8 & 39.75 \\
+ & Drift-Sinkhorn & 40.7 & 39.44 \\
  & Random & 39.7 & 38.75 \\
  & Inverse-MMD & 40.9 & 39.95 \\
  & Inverse-Sinkhorn & 40.9 & 39.74 \\
@@ -259,7 +297,7 @@ This study has several limitations that bound what can currently be concluded, e
 
 \section{Conclusion}
 
-We present a rigorous, reproducible methodology for measuring layer-wise representation drift in a frozen transformer language model, and use it to drive a verified, parameter-budget-matched LoRA rank-allocation pipeline (SALoRA). Our central empirical findings are about the measurement itself: MMD and Sinkhorn, two established distributional-distance metrics, disagree with each other in a domain-dependent way that is sensitive to representation-pooling methodology, and drift magnitude does not reliably track adaptation difficulty, particularly for adversarially-constructed benchmarks. A first, single-seed application of drift-guided allocation to real LoRA training shows no detectable advantage over uniform allocation, which we report honestly as preliminary and inconclusive rather than as evidence for or against the underlying hypothesis. We argue that establishing \emph{which} drift metric, if any, can be trusted -- ideally via controlled validation against a directly measured ground truth -- should precede, and is a prerequisite for, any claim that drift-guided allocation improves parameter-efficient adaptation in practice.
+We present a rigorous, reproducible methodology for measuring layer-wise representation drift in a frozen transformer language model, and use it to drive a verified, parameter-budget-matched LoRA rank-allocation pipeline. Our central empirical findings are about the measurement itself: MMD and Sinkhorn, two established distributional-distance metrics, disagree with each other in a domain-dependent way that is sensitive to representation-pooling methodology, and drift magnitude does not reliably track adaptation difficulty, particularly for adversarially-constructed benchmarks. A first, single-seed application of drift-guided allocation to real LoRA training shows no detectable advantage over uniform allocation, which we report honestly as preliminary and inconclusive rather than as evidence for or against the underlying hypothesis. We argue that establishing \emph{which} drift metric, if any, can be trusted -- ideally via controlled validation against a directly measured ground truth -- should precede, and is a prerequisite for, any claim that drift-guided allocation improves parameter-efficient adaptation in practice.
 
 \section*{Acknowledgment}
 This work was conducted using free-tier compute (local workstation and Google Colaboratory). We thank the maintainers of the Hugging Face \texttt{transformers}, \texttt{peft}, \texttt{datasets}, and POT (Python Optimal Transport) libraries.

@@ -1,4 +1,4 @@
-# SALoRA Paper Outline
+# Paper Outline: Can Frozen Representation Drift Guide PEFT Allocation?
 
 ## 1. Introduction
 
@@ -32,7 +32,7 @@ allocates rank from a signal computed during fine-tuning or from a static
 property of the model itself -- **none allocate rank from a pre-computed,
 ante-hoc measurement of how much the target domain's own data distribution
 has shifted from the source domain's**, which is what this project's
-drift-guided allocation (SALoRA-MMD, SALoRA-Sinkhorn) does.
+drift-guided allocation (Drift-MMD, Drift-Sinkhorn) does.
 
 **Distributional distance metrics for domain shift.** MMD and the
 Wasserstein/optimal-transport distance are both established tools for
@@ -44,11 +44,16 @@ found (via a web-search literature scan, not a systematic review) uses MMD or
 Sinkhorn/Wasserstein distance as the allocation signal for non-uniform LoRA
 rank.
 
-**Open item -- naming collision.** \citet{li2025salora} is an existing,
-unrelated, published method ("Safety-Alignment Preserved Low-Rank
-Adaptation") whose acronym differs from this project's "SALoRA" only in
-capitalization. Needs a decision (rename vs. explicit disambiguation) before
-submission -- see docs/literature/Related_Work.md Section 4.
+**Resolved -- naming collision.** The project's allocator was originally
+named "SALoRA," which collided (differing only in capitalization) with an
+unrelated, previously published method, \citet{li2025salora} ("Safety-
+Alignment Preserved Low-Rank Adaptation"). Resolved on 2026-11-11 by
+dropping the branded name from the paper entirely: the paper now describes
+the allocator generically (Drift-MMD / Drift-Sinkhorn) and leads with the
+research question in its title rather than a method name. The internal
+codebase (`src/salora/`, `train_salora.py`, etc.) keeps the "SALoRA" name
+as an implementation detail, unaffected by this change -- see
+docs/literature/Related_Work.md Section 4 for the original discussion.
 
 ---
 
