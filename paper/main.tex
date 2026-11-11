@@ -15,7 +15,7 @@
 
 \begin{document}
 
-\title{On the Reliability of Layer-wise Representation Drift as a Signal\\ for Parameter-Efficient Domain Adaptation:\\ An Empirical Study with Shift-Aware LoRA (SALoRA)}
+\title{SALoRA: Measuring Layer-wise Representation Drift for Parameter-Efficient Adaptation}
 
 \author{
 \IEEEauthorblockN{Bindhu Pagadala}
@@ -122,7 +122,14 @@ ANLI R3 & 28.58 & 27.64 \\
 \end{table}
 
 \subsection{Drift profile stability}
-Across $N=250$ to $N=950$, the layer-wise MMD profile varies by at most 13\% (relative) and Sinkhorn by at most 1.1\%, for the same target domain, with the argmax and argmin layers unchanged across sample sizes. We treat this as evidence that both metrics' \emph{relative, layer-wise ordering} is a stable, repeatable measurement at this sample-size range, while noting that stability of ranking does not by itself establish that either estimator's \emph{absolute magnitude} has converged -- both are finite-sample estimators of distributional distances in a 768-dimensional space, for which convergence guarantees are stronger for MMD's U-statistic estimator (dimension-independent $O(1/\sqrt{n})$) than for the entropic-regularized Sinkhorn estimate, whose bias additionally depends on the regularization strength chosen.
+Across $N=250$ to $N=950$, the layer-wise MMD profile varies by at most 13\% (relative) and Sinkhorn by at most 1.1\%, for the same target domain, with the argmax and argmin layers unchanged across sample sizes (Fig.~\ref{fig:sinkhorn-layers} shows the Sinkhorn profile at $N{=}950$). We treat this as evidence that both metrics' \emph{relative, layer-wise ordering} is a stable, repeatable measurement at this sample-size range, while noting that stability of ranking does not by itself establish that either estimator's \emph{absolute magnitude} has converged -- both are finite-sample estimators of distributional distances in a 768-dimensional space, for which convergence guarantees are stronger for MMD's U-statistic estimator (dimension-independent $O(1/\sqrt{n})$) than for the entropic-regularized Sinkhorn estimate, whose bias additionally depends on the regularization strength chosen.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/sinkhorn_layers.png}
+\caption{Layer-wise Sinkhorn drift profile ($N{=}950$) for all four targets. The non-monotonic shape (a dip around layers 2--3, then a steady rise to a maximum at layer 12) is shared across targets, consistent with the sample-size-stability result above; note how close the four lines track each other despite the targets' very different zero-shot accuracies (Table~\ref{tab:zeroshot}).}
+\label{fig:sinkhorn-layers}
+\end{figure}
 
 \subsection{MMD and Sinkhorn frequently disagree, in a domain-dependent way}
 Table~\ref{tab:correlation} reports the Spearman correlation between the two metrics' layer-wise profiles for each target, computed after correcting the attention-mask pooling bug described in Section~\ref{sec:methodology-reps}; we also report the pre-correction values to illustrate that the correlation pattern itself is sensitive to pooling methodology, not just to the underlying data.
@@ -144,6 +151,39 @@ ANLI R3 & $-0.41$ (n.s.) & $+0.54$ (n.s., $p{=}0.05$--$0.06$) \\
 \end{table}
 
 Only ANLI R1's significant anti-correlation survives the pooling correction unchanged; ANLI R2 loses significance, and ANLI R3 flips sign entirely, moving from a non-significant negative correlation to a borderline-significant positive one. We interpret this as evidence that whichever drift metric is chosen is not an interchangeable implementation detail: the two metrics can disagree sharply, the disagreement is not uniform across domains, and even the \emph{direction} of disagreement can be sensitive to a representation-extraction detail (pooling) that might otherwise be treated as a minor implementation choice.
+
+This disagreement is not just a statistical abstraction -- it produces concretely different rank allocations for the same target. Table~\ref{tab:allocation} and Fig.~\ref{fig:allocation} show the actual per-layer allocation computed for ANLI R1 under each metric. SALoRA-MMD stays close to the uniform baseline (ranks 6--9 at every layer), whereas SALoRA-Sinkhorn is sharply non-uniform, falling to 5 at layers 2--5 and rising to the maximum allowed rank of 16 at layer 12. Both allocations satisfy $\sum_\ell r_\ell = 96$ exactly (Section~\ref{sec:allocation}), so this is a genuine disagreement about \emph{where} to spend an identical budget, not an artifact of different total capacity.
+
+\begin{table}[htbp]
+\caption{Per-layer LoRA rank allocation for ANLI R1 ($R_{\mathrm{total}}{=}96$ throughout)}
+\label{tab:allocation}
+\centering
+\begin{tabular}{cccc}
+\toprule
+Layer & Uniform & SALoRA-MMD & SALoRA-Sinkhorn \\
+\midrule
+1  & 8 & 8 & 8 \\
+2  & 8 & 9 & 5 \\
+3  & 8 & 8 & 5 \\
+4  & 8 & 8 & 5 \\
+5  & 8 & 8 & 5 \\
+6  & 8 & 9 & 6 \\
+7  & 8 & 9 & 6 \\
+8  & 8 & 8 & 8 \\
+9  & 8 & 8 & 10 \\
+10 & 8 & 8 & 10 \\
+11 & 8 & 7 & 12 \\
+12 & 8 & 6 & 16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/allocation_comparison.png}
+\caption{Per-layer rank allocation for ANLI R1 under uniform, SALoRA-MMD, and SALoRA-Sinkhorn allocation. SALoRA-MMD closely tracks uniform allocation; SALoRA-Sinkhorn concentrates capacity in the later layers.}
+\label{fig:allocation}
+\end{figure}
 
 \subsection{Drift magnitude dissociates from adaptation difficulty}
 Table~\ref{tab:driftvsdiff} reports mean drift (layers 1--12) for each target alongside its zero-shot accuracy. ANLI R3 is the hardest target by a clear margin (28.6\% accuracy, the lowest of all four) yet shows the \emph{lowest} Sinkhorn drift of all four targets -- lower than WANLI, the easiest target by a wide margin.
