@@ -14,3 +14,7 @@ SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"query,value",0.0002,3,0.409,0.3974
 SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"query,value",0.0002,3,0.7298,0.7086761511159203,uniform,uniform,42.0,,"8,8,8,8,8,8,8,8,8,8,8,8",294912.0,592899.0,887811.0
 SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"query,value",0.0002,3,0.7328,0.7124052773402253,uniform,uniform,123.0,,"8,8,8,8,8,8,8,8,8,8,8,8",294912.0,592899.0,887811.0
 SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"query,value",0.0002,3,0.731,0.7117033849182411,uniform,uniform,2024.0,,"8,8,8,8,8,8,8,8,8,8,8,8",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.7302,0.7085720917421243,salora_mmd,mmd,42.0,,"10,9,7,7,8,9,7,7,8,7,7,10",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.733,0.7132089768100506,salora_mmd,mmd,123.0,,"10,9,7,7,8,9,7,7,8,7,7,10",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.731,0.7109825839802563,salora_mmd,mmd,2024.0,,"10,9,7,7,8,9,7,7,8,7,7,10",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"query,value",0.0002,3,0.733,0.7104262657141963,salora_sinkhorn,sinkhorn,42.0,,"7,5,5,5,5,6,6,8,10,10,13,16",294912.0,592899.0,887811.0
