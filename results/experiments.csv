@@ -19,3 +19,8 @@ SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.733,0.713208
 SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.731,0.7109825839802563,salora_mmd,mmd,2024.0,,"10,9,7,7,8,9,7,7,8,7,7,10",294912.0,592899.0,887811.0
 SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"query,value",0.0002,3,0.733,0.7104262657141963,salora_sinkhorn,sinkhorn,42.0,,"7,5,5,5,5,6,6,8,10,10,13,16",294912.0,592899.0,887811.0
 SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.7322,0.7141601870334194,salora_sinkhorn,sinkhorn,123.0,,"7,5,5,5,5,6,6,8,10,10,13,16",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.7296,0.7096153534996029,salora_sinkhorn,sinkhorn,2024.0,,"7,5,5,5,5,6,6,8,10,10,13,16",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"query,value",0.0002,3,0.7308,0.7091903638717875,random,random,42.0,101.0,"9,3,15,14,7,10,3,3,4,10,3,15",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"query,value",0.0002,3,0.7344,0.7153831240794802,random,random,123.0,101.0,"9,3,15,14,7,10,3,3,4,10,3,15",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.7312,0.7105610937597953,random,random,2024.0,101.0,"9,3,15,14,7,10,3,3,4,10,3,15",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,wanli,,16,0.1,"value,query",0.0002,3,0.731,0.7097638091104859,inverse_mmd,inverse_mmd,42.0,,"6,7,9,9,8,7,9,9,8,9,9,6",294912.0,592899.0,887811.0
