@@ -42,3 +42,11 @@ SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"value,query",0.0002,3,0.44,0.43629
 SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"query,value",0.0002,3,0.438,0.4350419727450982,inverse_mmd,inverse_mmd,2024.0,,"8,7,8,8,8,7,7,8,8,8,9,10",294912.0,592899.0,887811.0
 SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"value,query",0.0002,3,0.44,0.4362849421282687,inverse_sinkhorn,inverse_sinkhorn,123.0,,"7,11,11,10,10,10,9,7,6,6,5,4",294912.0,592899.0,887811.0
 SALoRA Matrix,Source RoBERTa,anli_r1,,16,0.1,"value,query",0.0002,3,0.441,0.4368925463811659,inverse_sinkhorn,inverse_sinkhorn,2024.0,,"7,11,11,10,10,10,9,7,6,6,5,4",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"value,query",0.0002,3,0.409,0.3980396022984379,uniform,uniform,42.0,,"8,8,8,8,8,8,8,8,8,8,8,8",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"query,value",0.0002,3,0.409,0.397688205235375,uniform,uniform,123.0,,"8,8,8,8,8,8,8,8,8,8,8,8",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"value,query",0.0002,3,0.409,0.3988323578955375,uniform,uniform,2024.0,,"8,8,8,8,8,8,8,8,8,8,8,8",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"query,value",0.0002,3,0.416,0.4044910646400417,salora_mmd,mmd,123.0,,"7,9,8,8,8,9,9,8,8,8,7,7",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"value,query",0.0002,3,0.405,0.3956546527247815,salora_mmd,mmd,2024.0,,"7,9,8,8,8,9,9,8,8,8,7,7",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"value,query",0.0002,3,0.403,0.3892208346094679,salora_sinkhorn,sinkhorn,123.0,,"7,5,5,5,6,6,6,8,10,10,12,16",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"query,value",0.0002,3,0.413,0.4020500887177741,salora_sinkhorn,sinkhorn,2024.0,,"7,5,5,5,6,6,6,8,10,10,12,16",294912.0,592899.0,887811.0
+SALoRA Matrix,Source RoBERTa,anli_r2,,16,0.1,"value,query",0.0002,3,0.409,0.39830212748375543,random,random,123.0,103.0,"15,7,11,12,3,1,9,2,6,14,14,2",294912.0,592899.0,887811.0
